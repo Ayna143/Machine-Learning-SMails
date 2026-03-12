@@ -10,5 +10,3 @@ Pillow
 scipy
 requests
 easyocr
-pymupdf
-python-docx

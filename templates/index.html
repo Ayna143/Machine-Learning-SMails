@@ -14,12 +14,13 @@
 <header class="topbar" id="topbar">
     <div class="topbar-inner">
         <a href="/" class="topbar-logo">
-            <span class="logo-icon">S</span>
+            <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="SpamSense" class="logo-img">
             <span>SpamSense</span>
         </a>
         <nav class="topbar-nav">
             <a href="#section-home" class="nav-link active" data-section="section-home">Home</a>
             <a href="#section-blog" class="nav-link" data-section="section-blog">Blog</a>
+            <a href="#section-about" class="nav-link" data-section="section-about">About</a>
             <a href="#section-company" class="nav-link" data-section="section-company">Company</a>
         </nav>
     </div>
@@ -32,7 +33,7 @@
 
     <div class="hero">
         <div class="hero-chip">DON'T TRUST. VERIFY.</div>
-        <h1>Free Spam &amp; Ham<br><span class="hero-accent">Detector</span></h1>
+        <h1>Spam &amp; Ham<br><span class="hero-accent">Detector</span></h1>
         <p>Instantly verify suspicious emails, texts, and datasets using machine learning.</p>
     </div>
 
@@ -40,9 +41,7 @@
         <nav class="tabs">
             <button class="tab active" data-tab="single">Check Email</button>
             <button class="tab" data-tab="image">Image Scan</button>
-            <button class="tab" data-tab="document">PDF / Word</button>
             <button class="tab" data-tab="batch">Import Dataset</button>
-            <button class="tab" data-tab="comparison">Model Comparison</button>
         </nav>
 
         <!-- TAB: CHECK EMAIL -->
@@ -84,7 +83,18 @@
             <div class="card">
                 <div class="card-header-row"><h2>Scan Image for Spam</h2><div class="model-selector"><label for="model-select-image">Model:</label><select id="model-select-image">{% for m in models %}<option value="{{ m }}">{{ m }}</option>{% endfor %}</select></div></div>
                 <p class="hint">Upload an image containing email text. OCR will extract the text and classify it.</p>
-                <div class="upload-area" id="image-upload-area"><span class="upload-icon">&#128444;</span><p>Drag &amp; drop an image here, or <label for="image-file-input" class="link">browse</label></p><input type="file" id="image-file-input" accept="image/*" hidden><p id="image-file-name" class="file-name"></p></div>
+                <div class="upload-area" id="image-upload-area">
+                    <span class="upload-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.5 6.5C4.5 5.395 5.395 4.5 6.5 4.5H17.5C18.605 4.5 19.5 5.395 19.5 6.5V17.5C19.5 18.605 18.605 19.5 17.5 19.5H6.5C5.395 19.5 4.5 18.605 4.5 17.5V6.5Z" stroke="currentColor" stroke-width="1.6"/>
+                            <path d="M8 10.25C8 9.56 8.56 9 9.25 9C9.94 9 10.5 9.56 10.5 10.25C10.5 10.94 9.94 11.5 9.25 11.5C8.56 11.5 8 10.94 8 10.25Z" fill="currentColor"/>
+                            <path d="M5.8 17.6L10.2 13.4C10.53 13.08 11.06 13.08 11.4 13.4L13.6 15.5C13.94 15.82 14.47 15.82 14.8 15.5L18.2 12.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <p>Drag &amp; drop an image here, or <label for="image-file-input" class="link">browse</label></p>
+                    <input type="file" id="image-file-input" accept="image/*" hidden>
+                    <p id="image-file-name" class="file-name"></p>
+                </div>
                 <div id="image-preview-wrap" class="image-preview hidden"><img id="image-preview" alt="Preview"></div>
                 <button id="btn-scan-image" class="btn primary" disabled>Scan Image</button>
             </div>
@@ -95,27 +105,22 @@
             </div>
         </section>
 
-        <!-- TAB: PDF / WORD -->
-        <section id="tab-document" class="tab-content">
-            <div class="card">
-                <div class="card-header-row"><h2>Scan PDF or Word Attachment</h2><div class="model-selector"><label for="model-select-document">Model:</label><select id="model-select-document">{% for m in models %}<option value="{{ m }}">{{ m }}</option>{% endfor %}</select></div></div>
-                <p class="hint">Upload a <strong>PDF</strong> or <strong>Word (.docx)</strong> file. Text will be extracted and checked for spam.</p>
-                <div class="upload-area" id="document-upload-area"><span class="upload-icon">&#128196;</span><p>Drag &amp; drop a PDF or Word file here, or <label for="document-file-input" class="link">browse</label></p><input type="file" id="document-file-input" accept=".pdf,.docx,.doc" hidden><p id="document-file-name" class="file-name"></p></div>
-                <button id="btn-analyze-document" class="btn primary" disabled>Analyze Document</button>
-            </div>
-            <div id="document-result" class="card result hidden">
-                <div id="document-result-banner" class="banner"><span id="document-result-icon" class="result-icon"></span><div><h3 id="document-result-label"></h3><p id="document-result-confidence"></p></div></div>
-                <div id="document-text-section"><h4>Extracted Text</h4><pre id="document-extracted-text"></pre></div>
-                <div id="document-result-reasons" class="reasons"></div>
-            </div>
-        </section>
-
         <!-- TAB: IMPORT DATASET -->
         <section id="tab-batch" class="tab-content">
             <div class="card">
                 <div class="card-header-row"><h2>Import &amp; Test a Dataset</h2><div class="model-selector"><label for="model-select-batch">Model:</label><select id="model-select-batch">{% for m in models %}<option value="{{ m }}">{{ m }}</option>{% endfor %}</select></div></div>
                 <p class="hint">Upload a <strong>CSV</strong> with a <code>text</code> column. Add a <code>label</code> column (0/1) to compute accuracy.</p>
-                <div class="upload-area" id="upload-area"><span class="upload-icon">&#128194;</span><p>Drag &amp; drop a CSV file here, or <label for="file-input" class="link">browse</label></p><input type="file" id="file-input" accept=".csv,.txt,.tsv" hidden><p id="file-name" class="file-name"></p></div>
+                <div class="upload-area" id="upload-area">
+                    <span class="upload-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M2 8h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <p>Drag &amp; drop a CSV file here, or <label for="file-input" class="link">browse</label></p>
+                    <input type="file" id="file-input" accept=".csv,.txt,.tsv" hidden>
+                    <p id="file-name" class="file-name"></p>
+                </div>
                 <button id="btn-upload" class="btn primary" disabled>Analyze File</button>
             </div>
             <div id="batch-result" class="card result hidden">
@@ -127,22 +132,6 @@
                     <div class="stat acc"><span id="stat-acc" class="stat-num">-</span><span class="stat-label">Accuracy</span></div>
                 </div>
                 <div id="batch-table-wrap" class="table-wrap"><table id="batch-table"><thead><tr><th>#</th><th>Email (preview)</th><th>Prediction</th><th>Confidence</th></tr></thead><tbody></tbody></table></div>
-            </div>
-        </section>
-
-        <!-- TAB: MODEL COMPARISON -->
-        <section id="tab-comparison" class="tab-content">
-            <div class="card">
-                <h2>Model Performance Comparison</h2>
-                <p class="hint">Side-by-side evaluation of all three models across datasets.</p>
-                <div id="comp-loading" class="comp-loading">Loading metrics...</div>
-                <div id="comp-content" class="hidden">
-                    <div class="dataset-tabs" id="dataset-tabs"></div>
-                    <div class="chart-container"><canvas id="metrics-chart"></canvas></div>
-                    <div class="table-wrap" id="comp-table-wrap"><table id="comp-table"><thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>CV F1</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
-                    <h3 class="section-title">Confusion Matrices</h3>
-                    <div id="confusion-matrices" class="cm-grid"></div>
-                </div>
             </div>
         </section>
     </div><!-- .main -->
@@ -194,6 +183,29 @@
 </section>
 
 <!-- ============================================================
+     SECTION: ABOUT (model comparison)
+     ============================================================ -->
+<!-- <section id="section-about" class="page-section section-alt">
+    <div class="section-container">
+        <div class="section-header anim-on-scroll">
+            <div class="hero-chip">Model Performance</div>
+            <h2 class="section-heading">About Our <span class="hero-accent">Models</span></h2>
+            <p class="section-sub">Side-by-side evaluation of all three models across datasets.</p>
+        </div>
+        <div class="card anim-on-scroll">
+            <div id="comp-loading" class="comp-loading">Loading metrics...</div>
+            <div id="comp-content" class="hidden">
+                <div class="dataset-tabs" id="dataset-tabs"></div>
+                <div class="chart-container"><canvas id="metrics-chart"></canvas></div>
+                <div class="table-wrap" id="comp-table-wrap"><table id="comp-table"><thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>CV F1</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
+                <h3 class="section-title">Confusion Matrices</h3>
+                <div id="confusion-matrices" class="cm-grid"></div>
+            </div>
+        </div>
+    </div>
+</section> -->
+
+<!-- ============================================================
      SECTION: COMPANY (about the team)
      ============================================================ -->
 <section id="section-company" class="page-section">
@@ -212,7 +224,7 @@
             <div class="company-card">
                 <div class="company-icon">&#9881;&#65039;</div>
                 <h3>Tech Stack</h3>
-                <p>Python &bull; Flask &bull; scikit-learn &bull; XGBoost &bull; NLTK &bull; TF-IDF &bull; HTML/CSS/JS &bull; Chart.js &bull; OCR (Tesseract / EasyOCR) &bull; PyMuPDF &bull; python-docx</p>
+                <p>Python &bull; Flask &bull; scikit-learn &bull; XGBoost &bull; NLTK &bull; TF-IDF &bull; HTML/CSS/JS &bull; Chart.js &bull; OCR (Tesseract / EasyOCR)</p>
             </div>
             <div class="company-card">
                 <div class="company-icon">&#128200;</div>

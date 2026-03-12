@@ -4,6 +4,7 @@
 
 const navLinks = document.querySelectorAll('.nav-link[data-section]');
 const sections = document.querySelectorAll('.page-section');
+const topbar = document.getElementById('topbar');
 
 navLinks.forEach(link => {
     link.addEventListener('click', e => {
@@ -25,6 +26,23 @@ function updateActiveNav() {
 window.addEventListener('scroll', updateActiveNav, { passive: true });
 updateActiveNav();
 
+function updateTopbarStyle() {
+    if (!topbar) return;
+    const scrolled = window.scrollY > 6;
+    topbar.classList.toggle('scrolled', scrolled);
+}
+
+window.addEventListener('scroll', updateTopbarStyle, { passive: true });
+updateTopbarStyle();
+
+const aboutSection = document.getElementById('section-about');
+if (aboutSection) {
+    const aboutObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) loadComparison();
+    }, { threshold: 0.2 });
+    aboutObserver.observe(aboutSection);
+}
+
 /* ================================================================
    SCROLL-TRIGGERED ANIMATIONS for .anim-on-scroll elements
    ================================================================ */
@@ -39,6 +57,99 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.15 });
 animEls.forEach(el => observer.observe(el));
+
+/* ================================================================
+   CUSTOM MODEL DROPDOWN (keeps existing <select> ids for JS)
+   ================================================================ */
+
+function initCustomSelect(selectEl) {
+    if (!selectEl || selectEl.dataset.customized === '1') return;
+    const opts = Array.from(selectEl.options || []);
+    if (opts.length < 2) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'custom-select-wrap';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'custom-select-label';
+    labelSpan.textContent = selectEl.value || (opts[0] && opts[0].value) || '';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'custom-select-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.innerHTML = '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    trigger.appendChild(labelSpan);
+    trigger.appendChild(arrow);
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'custom-select-dropdown hidden';
+    dropdown.setAttribute('role', 'listbox');
+
+    function setActive(value) {
+        labelSpan.textContent = value;
+        Array.from(dropdown.querySelectorAll('.custom-select-option')).forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === value);
+        });
+    }
+
+    opts.forEach(o => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'custom-select-option';
+        btn.dataset.value = o.value;
+        btn.textContent = o.textContent || o.value;
+        btn.addEventListener('click', () => {
+            selectEl.value = o.value;
+            selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+            setActive(o.value);
+            close();
+        });
+        dropdown.appendChild(btn);
+    });
+
+    function open() {
+        wrap.classList.add('open');
+        dropdown.classList.remove('hidden');
+    }
+    function close() {
+        wrap.classList.remove('open');
+        dropdown.classList.add('hidden');
+    }
+    function toggle() {
+        const isOpen = !dropdown.classList.contains('hidden');
+        if (isOpen) close(); else open();
+    }
+
+    trigger.addEventListener('click', (e) => { e.preventDefault(); toggle(); });
+    trigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') close();
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!wrap.contains(e.target)) close();
+    }, { passive: true });
+
+    selectEl.addEventListener('change', () => setActive(selectEl.value));
+
+    selectEl.classList.add('custom-select-native');
+    selectEl.dataset.customized = '1';
+
+    const parent = selectEl.parentElement;
+    parent.insertBefore(wrap, selectEl);
+    wrap.appendChild(selectEl);
+    wrap.appendChild(trigger);
+    wrap.appendChild(dropdown);
+
+    setActive(selectEl.value);
+}
+
+document.querySelectorAll('.model-selector select').forEach(initCustomSelect);
 
 /* ================================================================
    TOOL TABS (inside Home section)
@@ -56,9 +167,34 @@ document.querySelectorAll('.tab').forEach(tab => {
             requestAnimationFrame(() => target.classList.add('fade-in'));
         }
 
-        if (tab.dataset.tab === 'comparison') loadComparison();
     });
 });
+
+/* ================================================================
+   MICRO-INTERACTIONS: button ripple
+   ================================================================ */
+
+document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest ? e.target.closest('.btn') : null;
+    if (!btn || btn.disabled) return;
+
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+
+    const old = btn.querySelector('.ripple');
+    if (old) old.remove();
+    btn.appendChild(ripple);
+
+    ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+}, { passive: true });
 
 /* ===== Helpers ===== */
 const $ = id => document.getElementById(id);
@@ -67,6 +203,30 @@ const hide = el => el.classList.add('hidden');
 const loader = $('loader');
 function showLoader() { show(loader); }
 function hideLoader() { hide(loader); }
+
+async function safeJson(res) {
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return { error: 'Server error (invalid response). Check the terminal where the app is running.' }; }
+}
+
+function prettyErrorMessage(res, data, fallback) {
+    if (data && data.error) return data.error;
+    if (!res.ok) return `Request failed (${res.status}).`;
+    return fallback;
+}
+
+function validateFile(file, allowedExt, maxBytes, kindLabel) {
+    if (!file) return `No ${kindLabel} selected.`;
+    if (maxBytes && file.size > maxBytes) {
+        const mb = (maxBytes / (1024 * 1024)).toFixed(0);
+        return `${kindLabel} is too large (max ${mb}MB).`;
+    }
+    const name = (file.name || '').toLowerCase();
+    const ok = allowedExt.some(ext => name.endsWith(ext));
+    if (!ok) return `Invalid ${kindLabel} type. Allowed: ${allowedExt.join(', ')}`;
+    return null;
+}
 
 function setLoading(btn, on, label = 'Analyzing...') {
     if (!btn) return;
@@ -139,8 +299,9 @@ $('btn-check').addEventListener('click', async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email_text: text, sender, device, model_name: modelName }),
         });
-        const data = await res.json();
-        if (data.error) { alert(data.error); return; }
+        const data = await safeJson(res);
+        const errMsg = prettyErrorMessage(res, data, 'Request failed.');
+        if (!res.ok || data.error) { alert(errMsg); return; }
         renderResult(data);
         addToHistory(text, data);
     } catch (err) {
@@ -254,6 +415,8 @@ imageUploadArea.addEventListener('drop', e => {
 imageFileInput.addEventListener('change', () => { if (imageFileInput.files.length) imageSelected(imageFileInput.files[0]); });
 
 function imageSelected(file) {
+    const err = validateFile(file, ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp'], 16 * 1024 * 1024, 'image');
+    if (err) { alert(err); return; }
     selectedImage = file;
     $('image-file-name').textContent = file.name;
     btnScanImage.disabled = false;
@@ -272,10 +435,9 @@ btnScanImage.addEventListener('click', async () => {
     formData.append('model_name', $('model-select-image').value);
     try {
         const res = await fetch('/predict_image', { method: 'POST', body: formData });
-        const text = await res.text();
-        let data;
-        try { data = JSON.parse(text); } catch (_) { data = { error: 'Server error (invalid response). Check the terminal where the app is running.' }; }
-        if (!res.ok || data.error) { alert(data.error || 'Request failed (' + res.status + ').'); hideLoader(); setLoading(btn, false); return; }
+        const data = await safeJson(res);
+        const errMsg = prettyErrorMessage(res, data, 'Failed to process the image.');
+        if (!res.ok || data.error) { alert(errMsg); return; }
         renderImageResult(data);
     } catch (err) { alert('Request failed. Check your connection and the server console.'); console.error(err); }
     finally { hideLoader(); setLoading(btn, false); }
@@ -297,65 +459,6 @@ function renderImageResult(data) {
 }
 
 /* ================================================================
-   TAB — DOCUMENT (PDF / WORD)
-   ================================================================ */
-
-const documentUploadArea = $('document-upload-area');
-const documentFileInput = $('document-file-input');
-const btnAnalyzeDocument = $('btn-analyze-document');
-let selectedDocument = null;
-
-documentUploadArea.addEventListener('click', () => documentFileInput.click());
-documentUploadArea.addEventListener('dragover', e => { e.preventDefault(); documentUploadArea.classList.add('dragover'); });
-documentUploadArea.addEventListener('dragleave', () => documentUploadArea.classList.remove('dragover'));
-documentUploadArea.addEventListener('drop', e => {
-    e.preventDefault(); documentUploadArea.classList.remove('dragover');
-    if (e.dataTransfer.files.length) { documentFileInput.files = e.dataTransfer.files; documentSelected(e.dataTransfer.files[0]); }
-});
-documentFileInput.addEventListener('change', () => { if (documentFileInput.files.length) documentSelected(documentFileInput.files[0]); });
-
-function documentSelected(file) {
-    const ext = (file.name || '').toLowerCase().split('.').pop();
-    if (!['pdf', 'docx', 'doc'].includes(ext)) return;
-    selectedDocument = file;
-    $('document-file-name').textContent = file.name;
-    btnAnalyzeDocument.disabled = false;
-}
-
-btnAnalyzeDocument.addEventListener('click', async () => {
-    if (!selectedDocument) return;
-    const btn = btnAnalyzeDocument;
-    showLoader(); setLoading(btn, true, 'Analyzing...');
-    hide($('document-result'));
-    const formData = new FormData();
-    formData.append('document', selectedDocument);
-    formData.append('model_name', $('model-select-document').value);
-    try {
-        const res = await fetch('/predict_document', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.error) { alert(data.error); hideLoader(); return; }
-        renderDocumentResult(data);
-    } catch (err) { alert('Failed to process the document.'); console.error(err); }
-    finally { hideLoader(); setLoading(btn, false); }
-});
-
-function renderDocumentResult(data) {
-    const isSpam = data.is_spam;
-    const banner = $('document-result-banner');
-    banner.className = 'banner ' + (isSpam ? 'spam' : 'ham');
-    $('document-result-icon').textContent = isSpam ? '\u26A0\uFE0F' : '\u2705';
-    $('document-result-label').textContent = isSpam ? 'SPAM DETECTED' : 'NOT SPAM (HAM)';
-    $('document-result-confidence').textContent = data.confidence != null ? 'Confidence: ' + (data.confidence * 100).toFixed(1) + '%' : '';
-    const raw = (data.extracted_text || '').trim();
-    $('document-extracted-text').textContent = raw.length > 3000 ? raw.slice(0, 3000) + '\n\n... (truncated)' : raw || '(no text extracted)';
-    const reasonsDiv = $('document-result-reasons');
-    if (data.reasons && data.reasons.length) { reasonsDiv.innerHTML = '<h4>Analysis</h4><ul>' + data.reasons.map(r => '<li>' + escapeHtml(r) + '</li>').join('') + '</ul>'; }
-    else { reasonsDiv.innerHTML = ''; }
-    show($('document-result'));
-    animateCardPop($('document-result'));
-}
-
-/* ================================================================
    TAB — BATCH FILE IMPORT
    ================================================================ */
 
@@ -373,7 +476,13 @@ uploadArea.addEventListener('drop', e => {
 });
 fileInput.addEventListener('change', () => { if (fileInput.files.length) fileSelected(fileInput.files[0]); });
 
-function fileSelected(file) { selectedFile = file; $('file-name').textContent = file.name; btnUpload.disabled = false; }
+function fileSelected(file) {
+    const err = validateFile(file, ['.csv', '.txt', '.tsv'], 16 * 1024 * 1024, 'file');
+    if (err) { alert(err); return; }
+    selectedFile = file;
+    $('file-name').textContent = file.name;
+    btnUpload.disabled = false;
+}
 
 btnUpload.addEventListener('click', async () => {
     if (!selectedFile) return;
@@ -385,8 +494,9 @@ btnUpload.addEventListener('click', async () => {
     formData.append('model_name', $('model-select-batch').value);
     try {
         const res = await fetch('/predict_batch', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.error) { alert(data.error); hideLoader(); return; }
+        const data = await safeJson(res);
+        const errMsg = prettyErrorMessage(res, data, 'Failed to process the file.');
+        if (!res.ok || data.error) { alert(errMsg); return; }
         renderBatch(data);
     } catch (err) { alert('Failed to process the file.'); console.error(err); }
     finally { hideLoader(); setLoading(btn, false); }
@@ -409,7 +519,7 @@ function renderBatch(data) {
 }
 
 /* ================================================================
-   TAB — MODEL COMPARISON DASHBOARD
+   ABOUT SECTION — MODEL COMPARISON (load when section visible)
    ================================================================ */
 
 let compData = null;

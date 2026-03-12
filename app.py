@@ -1,6 +1,6 @@
 """
 Flask web application for Email Spam Detection.
-Features: single check, batch import, image OCR, model comparison dashboard.
+Features: single check, batch import, image OCR; model comparison in About.
 """
 
 import os
@@ -132,84 +132,6 @@ def predict_batch():
     except Exception:
         traceback.print_exc()
         return jsonify({'error': 'Failed to process the uploaded file.'}), 500
-
-
-# ── Document (PDF / Word) Prediction ────────────────────────────────────────
-
-def _extract_text_from_document(file_stream, filename):
-    """Extract text from PDF or Word (.docx). Returns (text, error_message)."""
-    ext = (filename or '').lower().split('.')[-1]
-    if ext == 'pdf':
-        try:
-            import fitz  # pymupdf
-        except ImportError:
-            return ('', 'PDF support requires: pip install pymupdf')
-        try:
-            doc = fitz.open(stream=file_stream.read(), filetype='pdf')
-            parts = []
-            for page in doc:
-                parts.append(page.get_text())
-            doc.close()
-            return (' '.join(parts).strip(), None)
-        except Exception as e:
-            return ('', f'PDF extraction failed: {e}')
-    if ext in ('docx', 'doc'):
-        try:
-            from docx import Document
-        except ImportError:
-            return ('', 'Word support requires: pip install python-docx')
-        try:
-            doc = Document(io.BytesIO(file_stream.read()))
-            parts = [p.text for p in doc.paragraphs]
-            for table in doc.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        parts.append(cell.text)
-            return (' '.join(parts).strip(), None)
-        except Exception as e:
-            return ('', f'Word extraction failed: {e}')
-    return ('', 'Unsupported format. Use PDF or Word (.docx).')
-
-
-@app.route('/predict_document', methods=['POST'])
-def predict_document():
-    try:
-        if 'document' not in request.files:
-            return jsonify({'error': 'No file uploaded.'}), 400
-
-        file = request.files['document']
-        model_name = request.form.get('model_name', None)
-
-        if file.filename == '':
-            return jsonify({'error': 'Empty filename.'}), 400
-
-        allowed_ext = ('.pdf', '.docx', '.doc')
-        if not file.filename.lower().endswith(allowed_ext):
-            return jsonify({'error': 'Please upload a PDF or Word (.docx) file.'}), 400
-
-        file.stream.seek(0)
-        extracted_text, err = _extract_text_from_document(file.stream, file.filename)
-        if err:
-            return jsonify({'error': err}), 500
-
-        if not extracted_text:
-            return jsonify({
-                'extracted_text': '',
-                'prediction': 'not spam',
-                'is_spam': False,
-                'confidence': None,
-                'reasons': ['No text could be extracted from the document.'],
-                'features': {},
-                'model_used': model_name or 'best',
-            })
-
-        result = get_detector().predict(extracted_text, model_name=model_name)
-        result['extracted_text'] = extracted_text
-        return jsonify(result)
-
-    except Exception:
-        traceback.print_exc()
-        return jsonify({'error': 'Failed to process the document.'}), 500
 
 
 # ── Image OCR Prediction ────────────────────────────────────────────────────
