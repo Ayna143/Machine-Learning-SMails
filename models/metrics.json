@@ -1,0 +1,226 @@
+{
+  "SMS Spam": {
+    "Random Forest": {
+      "accuracy": 0.9821,
+      "precision": 1.0,
+      "recall": 0.8658,
+      "f1_score": 0.9281,
+      "cv_f1_mean": 0.9337,
+      "cv_f1_std": 0.0038,
+      "confusion_matrix": [
+        [
+          966,
+          0
+        ],
+        [
+          20,
+          129
+        ]
+      ]
+    },
+    "Naive Bayes": {
+      "accuracy": 0.9659,
+      "precision": 0.9826,
+      "recall": 0.7584,
+      "f1_score": 0.8561,
+      "cv_f1_mean": 0.8378,
+      "cv_f1_std": 0.0198,
+      "confusion_matrix": [
+        [
+          964,
+          2
+        ],
+        [
+          36,
+          113
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.9839,
+      "precision": 0.958,
+      "recall": 0.9195,
+      "f1_score": 0.9384,
+      "cv_f1_mean": 0.9437,
+      "cv_f1_std": 0.0113,
+      "confusion_matrix": [
+        [
+          960,
+          6
+        ],
+        [
+          12,
+          137
+        ]
+      ]
+    }
+  },
+  "Enron Email": {
+    "Random Forest": {
+      "accuracy": 0.9887,
+      "precision": 0.9677,
+      "recall": 0.9854,
+      "f1_score": 0.9765,
+      "cv_f1_mean": 0.967,
+      "cv_f1_std": 0.0015,
+      "confusion_matrix": [
+        [
+          863,
+          9
+        ],
+        [
+          4,
+          270
+        ]
+      ]
+    },
+    "Naive Bayes": {
+      "accuracy": 0.9232,
+      "precision": 0.8252,
+      "recall": 0.8613,
+      "f1_score": 0.8429,
+      "cv_f1_mean": 0.8441,
+      "cv_f1_std": 0.0049,
+      "confusion_matrix": [
+        [
+          822,
+          50
+        ],
+        [
+          38,
+          236
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.9747,
+      "precision": 0.9359,
+      "recall": 0.9599,
+      "f1_score": 0.9477,
+      "cv_f1_mean": 0.9577,
+      "cv_f1_std": 0.0061,
+      "confusion_matrix": [
+        [
+          854,
+          18
+        ],
+        [
+          11,
+          263
+        ]
+      ]
+    }
+  },
+  "SpamAssassin": {
+    "Random Forest": {
+      "accuracy": 0.9984,
+      "precision": 1.0,
+      "recall": 0.99,
+      "f1_score": 0.995,
+      "cv_f1_mean": 0.997,
+      "cv_f1_std": 0.0024,
+      "confusion_matrix": [
+        [
+          511,
+          0
+        ],
+        [
+          1,
+          99
+        ]
+      ]
+    },
+    "Naive Bayes": {
+      "accuracy": 0.9493,
+      "precision": 0.8485,
+      "recall": 0.84,
+      "f1_score": 0.8442,
+      "cv_f1_mean": 0.7744,
+      "cv_f1_std": 0.0648,
+      "confusion_matrix": [
+        [
+          496,
+          15
+        ],
+        [
+          16,
+          84
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "cv_f1_mean": 0.994,
+      "cv_f1_std": 0.0084,
+      "confusion_matrix": [
+        [
+          511,
+          0
+        ],
+        [
+          0,
+          100
+        ]
+      ]
+    }
+  },
+  "Combined": {
+    "Random Forest": {
+      "accuracy": 0.9874,
+      "precision": 0.9855,
+      "recall": 0.9444,
+      "f1_score": 0.9645,
+      "cv_f1_mean": 0.9586,
+      "cv_f1_std": 0.0013,
+      "confusion_matrix": [
+        [
+          2272,
+          7
+        ],
+        [
+          28,
+          476
+        ]
+      ]
+    },
+    "Naive Bayes": {
+      "accuracy": 0.9077,
+      "precision": 0.7578,
+      "recall": 0.7202,
+      "f1_score": 0.7386,
+      "cv_f1_mean": 0.7415,
+      "cv_f1_std": 0.0117,
+      "confusion_matrix": [
+        [
+          2163,
+          116
+        ],
+        [
+          141,
+          363
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.982,
+      "precision": 0.9652,
+      "recall": 0.9345,
+      "f1_score": 0.9496,
+      "cv_f1_mean": 0.9518,
+      "cv_f1_std": 0.0006,
+      "confusion_matrix": [
+        [
+          2262,
+          17
+        ],
+        [
+          33,
+          471
+        ]
+      ]
+    }
+  }
+}

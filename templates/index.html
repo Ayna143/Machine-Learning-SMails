@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamSense &mdash; Intelligent Email Spam &amp; Ham Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ===== STICKY TOP NAV ===== -->
+<header class="topbar" id="topbar">
+    <div class="topbar-inner">
+        <a href="/" class="topbar-logo">
+            <img src="{{ url_for('static', filename='imgs/logo.png') }}" alt="SpamSense" class="logo-img">
+            <span>SpamSense</span>
+        </a>
+        <nav class="topbar-nav">
+            <a href="#section-home" class="nav-link active" data-section="section-home">Home</a>
+            <a href="#section-blog" class="nav-link" data-section="section-blog">Blog</a>
+            <a href="#section-about" class="nav-link" data-section="section-about">About</a>
+        </nav>
+    </div>
+</header>
+
+<!-- ============================================================
+     SECTION: HOME (hero + tool)
+     ============================================================ -->
+<section id="section-home" class="page-section">
+
+    <div class="hero">
+        <div class="hero-chip">DON'T TRUST. VERIFY.</div>
+        <h1>Spam &amp; Ham<br><span class="hero-accent">Detector</span></h1>
+        <p>Instantly verify suspicious emails, texts, and datasets using machine learning.</p>
+    </div>
+
+    <div class="main">
+        <nav class="tabs">
+            <button class="tab active" data-tab="single">Check Email</button>
+            <button class="tab" data-tab="image">Image Scan</button>
+            <button class="tab" data-tab="batch">Import Dataset</button>
+        </nav>
+
+        <!-- TAB: CHECK EMAIL -->
+        <section id="tab-single" class="tab-content active">
+            <div class="card">
+                <div class="card-header-row"><h2>Analyze an Email (All Models)</h2></div>
+                <textarea id="email-input" rows="7" placeholder="Paste a suspicious email, website link, message, or sender address...&#10;&#10;Example: &quot;Dear Outlook User, immediate enrollment is required to keep your account active.&quot;"></textarea>
+                <div class="optional-fields">
+                    <div class="field"><label for="sender-input">Sender (optional)</label><input type="text" id="sender-input" placeholder="e.g. promo@free-prize.xyz"></div>
+                    <div class="field"><label for="device-input">Device (optional)</label><input type="text" id="device-input" placeholder="e.g. iPhone, Unknown, Bot Sender"></div>
+                </div>
+                <button id="btn-check" class="btn primary">Check for Spam</button>
+            </div>
+            <div id="result-card" class="card result hidden">
+                <div id="result-banner" class="banner"><span id="result-icon" class="result-icon"></span><div><h3 id="result-label"></h3><p id="result-confidence"></p><p id="result-subline" class="result-subline"></p><p id="result-model-used" class="model-badge"></p></div></div>
+                <div id="single-disagree-alert" class="disagree-alert hidden" role="status"></div>
+                <div id="single-suggestion" class="model-suggestion"></div>
+                <div class="chart-container compact"><canvas id="single-chart"></canvas></div>
+                <div class="table-wrap"><table id="single-model-table"><thead><tr><th>Model</th><th>Result</th><th>Confidence</th><th>Accuracy</th></tr></thead><tbody></tbody></table></div>
+                <div id="result-reasons" class="reasons"></div>
+                <div id="result-features" class="features-grid"></div>
+            </div>
+        </section>
+
+        <!-- TAB: IMAGE SCAN -->
+        <section id="tab-image" class="tab-content">
+            <div class="card">
+                <div class="card-header-row"><h2>Scan Image for Spam (All Models)</h2></div>
+                <p class="hint">Upload an image containing email text. OCR will extract the text and classify it.</p>
+                <div class="upload-area" id="image-upload-area">
+                    <span class="upload-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.5 6.5C4.5 5.395 5.395 4.5 6.5 4.5H17.5C18.605 4.5 19.5 5.395 19.5 6.5V17.5C19.5 18.605 18.605 19.5 17.5 19.5H6.5C5.395 19.5 4.5 18.605 4.5 17.5V6.5Z" stroke="currentColor" stroke-width="1.6"/>
+                            <path d="M8 10.25C8 9.56 8.56 9 9.25 9C9.94 9 10.5 9.56 10.5 10.25C10.5 10.94 9.94 11.5 9.25 11.5C8.56 11.5 8 10.94 8 10.25Z" fill="currentColor"/>
+                            <path d="M5.8 17.6L10.2 13.4C10.53 13.08 11.06 13.08 11.4 13.4L13.6 15.5C13.94 15.82 14.47 15.82 14.8 15.5L18.2 12.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <p>Drag &amp; drop an image here, or <label for="image-file-input" class="link">browse</label></p>
+                    <input type="file" id="image-file-input" accept="image/*" hidden>
+                    <p id="image-file-name" class="file-name"></p>
+                </div>
+                <div id="image-preview-wrap" class="image-preview hidden"><img id="image-preview" alt="Preview"></div>
+                <button id="btn-scan-image" class="btn primary" disabled>Scan Image</button>
+            </div>
+            <div id="image-result" class="card result hidden">
+                <div id="image-result-banner" class="banner"><span id="image-result-icon" class="result-icon"></span><div><h3 id="image-result-label"></h3><p id="image-result-confidence"></p><p id="image-result-subline" class="result-subline"></p></div></div>
+                <div id="image-disagree-alert" class="disagree-alert hidden" role="status"></div>
+                <div id="image-suggestion" class="model-suggestion"></div>
+                <div class="chart-container compact"><canvas id="image-chart"></canvas></div>
+                <div class="table-wrap"><table id="image-model-table"><thead><tr><th>Model</th><th>Result</th><th>Confidence</th><th>Accuracy</th></tr></thead><tbody></tbody></table></div>
+                <div id="ocr-text-section"><h4>Extracted Text (OCR)</h4><pre id="ocr-text"></pre></div>
+                <div id="image-result-reasons" class="reasons"></div>
+            </div>
+        </section>
+
+        <!-- TAB: IMPORT DATASET -->
+        <section id="tab-batch" class="tab-content">
+            <div class="card">
+                <div class="card-header-row"><h2>Import &amp; Test a Dataset (All Models)</h2></div>
+                <p class="hint">Upload a <strong>CSV</strong> with a <code>text</code> column. Add a <code>label</code> column (0/1) to compute accuracy.</p>
+                <div class="upload-area" id="upload-area">
+                    <span class="upload-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M2 8h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <p>Drag &amp; drop a CSV file here, or <label for="file-input" class="link">browse</label></p>
+                    <input type="file" id="file-input" accept=".csv,.txt,.tsv" hidden>
+                    <p id="file-name" class="file-name"></p>
+                </div>
+                <button id="btn-upload" class="btn primary" disabled>Analyze File</button>
+            </div>
+            <div id="batch-result" class="card result hidden">
+                <h3>Dataset Results</h3>
+                <div id="batch-suggestion" class="model-suggestion"></div>
+                <div class="chart-container compact"><canvas id="batch-chart"></canvas></div>
+                <div class="table-wrap"><table id="batch-model-table"><thead><tr><th>Model</th><th>Total</th><th>Spam</th><th>Ham</th><th>Accuracy</th><th>Hist F1</th></tr></thead><tbody></tbody></table></div>
+                <div class="stats-row">
+                    <div class="stat"><span id="stat-total" class="stat-num">-</span><span class="stat-label">Total</span></div>
+                    <div class="stat spam"><span id="stat-spam" class="stat-num">-</span><span class="stat-label">Spam</span></div>
+                    <div class="stat ham"><span id="stat-ham" class="stat-num">-</span><span class="stat-label">Not Spam</span></div>
+                    <div class="stat acc"><span id="stat-acc" class="stat-num">-</span><span class="stat-label">Accuracy</span></div>
+                </div>
+                <div id="batch-table-wrap" class="table-wrap"><table id="batch-table"><thead><tr><th>#</th><th>Email (preview)</th><th>Prediction</th><th>Confidence</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </section>
+
+        <!-- Shared history for all tools (localStorage + live updates) -->
+        <div id="history-section" class="card history-panel hidden">
+            <div class="card-header-row history-header-row">
+                <div>
+                    <h2>Activity History</h2>
+                    <p class="history-hint">Saved on this device only &mdash; survives refresh</p>
+                </div>
+                <button type="button" id="btn-clear-history" class="btn-text">Clear</button>
+            </div>
+            <div id="history-list" class="history-list"></div>
+        </div>
+    </div><!-- .main -->
+</section>
+
+<!-- ============================================================
+     SECTION: BLOG (educational cards)
+     ============================================================ -->
+<section id="section-blog" class="page-section section-alt">
+    <div class="section-container">
+        <div class="section-header anim-on-scroll">
+            <div class="hero-chip">Spam &amp; Ham Awareness</div>
+            <h2 class="section-heading">Stay One Step Ahead of<br><span class="hero-accent">Spammers</span></h2>
+            <p class="section-sub">Expert insights, real examples, and practical tips to protect yourself from phishing, spam, and online fraud.</p>
+        </div>
+        <div class="blog-grid">
+            <article class="blog-card anim-on-scroll">
+                <span class="blog-tag blue">How It Works</span>
+                <h3>What Is Email Spam?</h3>
+                <p>Spam emails are unsolicited messages sent in bulk, often containing phishing links, malware, or deceptive offers. They clutter your inbox and can lead to identity theft or financial loss if you engage with them.</p>
+            </article>
+            <article class="blog-card anim-on-scroll">
+                <span class="blog-tag green">Machine Learning</span>
+                <h3>How SpamSense Detects Spam</h3>
+                <p>SpamSense uses three powerful ML models &mdash; Random Forest, Naive Bayes, and XGBoost &mdash; trained on thousands of real emails. We extract features like suspicious keywords, URL counts, sender patterns, and more to classify each message.</p>
+            </article>
+            <article class="blog-card anim-on-scroll">
+                <span class="blog-tag orange">Tips &amp; Safety</span>
+                <h3>How to Protect Yourself from Spam</h3>
+                <p>Never click suspicious links. Check sender addresses carefully &mdash; scammers use look-alike domains. Enable two-factor authentication. Use tools like SpamSense to verify messages before acting on them.</p>
+            </article>
+            <article class="blog-card anim-on-scroll">
+                <span class="blog-tag purple">NLP</span>
+                <h3>Understanding TF-IDF Vectorization</h3>
+                <p>TF-IDF (Term Frequency-Inverse Document Frequency) converts email text into numerical features. It highlights words that are important in a specific email but rare across all emails &mdash; a powerful signal for spam detection.</p>
+            </article>
+            <article class="blog-card anim-on-scroll">
+                <span class="blog-tag red">Security</span>
+                <h3>Phishing vs. Spam: Know the Difference</h3>
+                <p>Spam is annoying junk mail. Phishing is a targeted attack that impersonates trusted entities to steal your credentials. Both are dangerous, but phishing emails are crafted to look legitimate and urgent.</p>
+            </article>
+            <article class="blog-card anim-on-scroll">
+                <span class="blog-tag blue">Feature Engineering</span>
+                <h3>What Features Does SpamSense Analyze?</h3>
+                <p>We analyze 16+ features: suspicious keywords, URLs, special characters, uppercase ratio, HTML presence, sender domain reputation, device type, exclamation marks, dollar signs, digit ratios, and more.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     SECTION: ABOUT (model comparison)
+     ============================================================ -->
+<section id="section-about" class="page-section section-alt">
+    <div class="section-container">
+        <div class="section-header anim-on-scroll">
+            <div class="hero-chip">Model Performance</div>
+            <h2 class="section-heading">About Our <span class="hero-accent">Models</span></h2>
+            <p class="section-sub">Side-by-side evaluation of Random Forest, Naive Bayes, and XGBoost on SMS, Enron, SpamAssassin, and the combined training set.</p>
+        </div>
+        <div class="card anim-on-scroll">
+            <div id="comp-loading" class="comp-loading">Loading metrics...</div>
+            <div id="comp-content" class="hidden">
+                <div class="dataset-tabs" id="dataset-tabs"></div>
+                <div class="chart-container"><canvas id="metrics-chart"></canvas></div>
+                <div class="table-wrap" id="comp-table-wrap"><table id="comp-table"><thead><tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>CV F1</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
+                <h3 class="section-title">Confusion Matrices</h3>
+                <div id="confusion-matrices" class="cm-grid"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     SECTION: COMPANY (about the team)
+     ============================================================ -->
+<section id="section-company" class="page-section hidden">
+    <div class="section-container">
+        <div class="section-header anim-on-scroll">
+            <div class="hero-chip">About Us</div>
+            <h2 class="section-heading">Meet the Team Behind<br><span class="hero-accent">SpamSense</span></h2>
+            <p class="section-sub">We are students from Western Mindanao State University, College of Computing Studies, building this project for our Machine Learning course.</p>
+        </div>
+        <div class="company-content anim-on-scroll">
+            <div class="company-card">
+                <div class="company-icon">&#127891;</div>
+                <h3>Our Mission</h3>
+                <p>To create an accurate, accessible, and user-friendly spam detection tool that demonstrates the practical power of machine learning in solving real-world cybersecurity problems.</p>
+            </div>
+            <div class="company-card">
+                <div class="company-icon">&#9881;&#65039;</div>
+                <h3>Tech Stack</h3>
+                <p>Python &bull; Flask &bull; scikit-learn &bull; XGBoost &bull; NLTK &bull; TF-IDF &bull; HTML/CSS/JS &bull; Chart.js &bull; OCR (Tesseract / EasyOCR)</p>
+            </div>
+            <div class="company-card">
+                <div class="company-icon">&#128200;</div>
+                <h3>Our Results</h3>
+                <p>Models are trained on the SMS Spam Collection (UCI), an Enron spam mirror, and the Apache SpamAssassin Public Corpus, then evaluated on each source and on the merged set. See the Model Performance section for current numbers.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>Western Mindanao State University &bull; College of Computing Studies &bull; Machine Learning Course<br><strong>SpamSense</strong> &mdash; Intelligent Email Spam &amp; Ham Detection System</p>
+</footer>
+
+<div id="loader" class="loader-overlay hidden">
+    <div class="spinner"></div>
+    <p>Analyzing...</p>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

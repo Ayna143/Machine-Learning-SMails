@@ -1,0 +1,12 @@
+flask
+pandas
+numpy
+scikit-learn
+xgboost
+nltk
+joblib
+pytesseract
+Pillow
+scipy
+requests
+easyocr
