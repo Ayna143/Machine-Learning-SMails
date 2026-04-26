@@ -10,3 +10,4 @@ Pillow
 scipy
 requests
 easyocr
+gunicorn
