@@ -1,128 +1,146 @@
 {
   "SMS Spam": {
     "Random Forest": {
-      "accuracy": 0.9821,
+      "accuracy": 0.9785,
       "precision": 1.0,
-      "recall": 0.8658,
-      "f1_score": 0.9281,
-      "cv_f1_mean": 0.9337,
-      "cv_f1_std": 0.0038,
+      "recall": 0.8389,
+      "f1_score": 0.9124,
+      "cv_f1_mean": 0.8782,
+      "cv_f1_std": 0.013,
       "confusion_matrix": [
         [
           966,
           0
         ],
         [
-          20,
-          129
+          24,
+          125
         ]
       ]
     },
     "Naive Bayes": {
-      "accuracy": 0.9659,
-      "precision": 0.9826,
-      "recall": 0.7584,
-      "f1_score": 0.8561,
-      "cv_f1_mean": 0.8378,
-      "cv_f1_std": 0.0198,
+      "accuracy": 0.965,
+      "precision": 0.8929,
+      "recall": 0.8389,
+      "f1_score": 0.8651,
+      "cv_f1_mean": 0.8997,
+      "cv_f1_std": 0.0064,
       "confusion_matrix": [
         [
-          964,
-          2
+          951,
+          15
         ],
         [
-          36,
-          113
+          24,
+          125
         ]
       ]
     },
     "XGBoost": {
-      "accuracy": 0.9839,
-      "precision": 0.958,
-      "recall": 0.9195,
-      "f1_score": 0.9384,
-      "cv_f1_mean": 0.9437,
-      "cv_f1_std": 0.0113,
+      "accuracy": 0.9874,
+      "precision": 0.9787,
+      "recall": 0.9262,
+      "f1_score": 0.9517,
+      "cv_f1_mean": 0.952,
+      "cv_f1_std": 0.0036,
       "confusion_matrix": [
         [
-          960,
-          6
+          963,
+          3
         ],
         [
-          12,
-          137
+          11,
+          138
         ]
       ]
     }
   },
   "Enron Email": {
     "Random Forest": {
-      "accuracy": 0.9887,
-      "precision": 0.9677,
-      "recall": 0.9854,
-      "f1_score": 0.9765,
-      "cv_f1_mean": 0.967,
-      "cv_f1_std": 0.0015,
+      "accuracy": 0.952,
+      "precision": 0.9955,
+      "recall": 0.8029,
+      "f1_score": 0.8889,
+      "cv_f1_mean": 0.9002,
+      "cv_f1_std": 0.0119,
       "confusion_matrix": [
         [
-          863,
-          9
+          871,
+          1
         ],
         [
-          4,
-          270
+          54,
+          220
         ]
       ]
     },
     "Naive Bayes": {
-      "accuracy": 0.9232,
-      "precision": 0.8252,
-      "recall": 0.8613,
-      "f1_score": 0.8429,
-      "cv_f1_mean": 0.8441,
-      "cv_f1_std": 0.0049,
-      "confusion_matrix": [
-        [
-          822,
-          50
-        ],
-        [
-          38,
-          236
-        ]
-      ]
-    },
-    "XGBoost": {
-      "accuracy": 0.9747,
-      "precision": 0.9359,
+      "accuracy": 0.9433,
+      "precision": 0.8297,
       "recall": 0.9599,
-      "f1_score": 0.9477,
-      "cv_f1_mean": 0.9577,
-      "cv_f1_std": 0.0061,
+      "f1_score": 0.89,
+      "cv_f1_mean": 0.9167,
+      "cv_f1_std": 0.0014,
       "confusion_matrix": [
         [
-          854,
-          18
+          818,
+          54
         ],
         [
           11,
           263
         ]
       ]
+    },
+    "XGBoost": {
+      "accuracy": 0.9782,
+      "precision": 0.9628,
+      "recall": 0.9453,
+      "f1_score": 0.954,
+      "cv_f1_mean": 0.9468,
+      "cv_f1_std": 0.0027,
+      "confusion_matrix": [
+        [
+          862,
+          10
+        ],
+        [
+          15,
+          259
+        ]
+      ]
     }
   },
   "SpamAssassin": {
     "Random Forest": {
-      "accuracy": 0.9984,
-      "precision": 1.0,
-      "recall": 0.99,
-      "f1_score": 0.995,
-      "cv_f1_mean": 0.997,
-      "cv_f1_std": 0.0024,
+      "accuracy": 0.9935,
+      "precision": 0.98,
+      "recall": 0.98,
+      "f1_score": 0.98,
+      "cv_f1_mean": 0.9637,
+      "cv_f1_std": 0.0086,
       "confusion_matrix": [
         [
-          511,
-          0
+          509,
+          2
+        ],
+        [
+          2,
+          98
+        ]
+      ]
+    },
+    "Naive Bayes": {
+      "accuracy": 0.9264,
+      "precision": 0.6923,
+      "recall": 0.99,
+      "f1_score": 0.8148,
+      "cv_f1_mean": 0.7297,
+      "cv_f1_std": 0.0685,
+      "confusion_matrix": [
+        [
+          467,
+          44
         ],
         [
           1,
@@ -130,95 +148,133 @@
         ]
       ]
     },
-    "Naive Bayes": {
-      "accuracy": 0.9493,
-      "precision": 0.8485,
-      "recall": 0.84,
-      "f1_score": 0.8442,
-      "cv_f1_mean": 0.7744,
-      "cv_f1_std": 0.0648,
-      "confusion_matrix": [
-        [
-          496,
-          15
-        ],
-        [
-          16,
-          84
-        ]
-      ]
-    },
     "XGBoost": {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1_score": 1.0,
-      "cv_f1_mean": 0.994,
-      "cv_f1_std": 0.0084,
+      "accuracy": 0.9967,
+      "precision": 0.99,
+      "recall": 0.99,
+      "f1_score": 0.99,
+      "cv_f1_mean": 0.9769,
+      "cv_f1_std": 0.0075,
       "confusion_matrix": [
         [
-          511,
-          0
+          510,
+          1
         ],
         [
-          0,
-          100
+          1,
+          99
         ]
       ]
     }
   },
   "Combined": {
     "Random Forest": {
-      "accuracy": 0.9874,
-      "precision": 0.9855,
-      "recall": 0.9444,
-      "f1_score": 0.9645,
-      "cv_f1_mean": 0.9586,
-      "cv_f1_std": 0.0013,
+      "accuracy": 0.945,
+      "precision": 0.9936,
+      "recall": 0.7452,
+      "f1_score": 0.8516,
+      "cv_f1_mean": 0.8575,
+      "cv_f1_std": 0.0142,
       "confusion_matrix": [
         [
-          2272,
-          7
+          2321,
+          3
         ],
         [
-          28,
-          476
+          159,
+          465
         ]
       ]
     },
     "Naive Bayes": {
-      "accuracy": 0.9077,
-      "precision": 0.7578,
-      "recall": 0.7202,
-      "f1_score": 0.7386,
-      "cv_f1_mean": 0.7415,
-      "cv_f1_std": 0.0117,
+      "accuracy": 0.9213,
+      "precision": 0.8151,
+      "recall": 0.8125,
+      "f1_score": 0.8138,
+      "cv_f1_mean": 0.8158,
+      "cv_f1_std": 0.0148,
       "confusion_matrix": [
         [
-          2163,
-          116
+          2209,
+          115
         ],
         [
-          141,
-          363
+          117,
+          507
         ]
       ]
     },
     "XGBoost": {
-      "accuracy": 0.982,
-      "precision": 0.9652,
-      "recall": 0.9345,
-      "f1_score": 0.9496,
-      "cv_f1_mean": 0.9518,
-      "cv_f1_std": 0.0006,
+      "accuracy": 0.9796,
+      "precision": 0.9747,
+      "recall": 0.9279,
+      "f1_score": 0.9507,
+      "cv_f1_mean": 0.9499,
+      "cv_f1_std": 0.0055,
       "confusion_matrix": [
         [
-          2262,
-          17
+          2309,
+          15
         ],
         [
-          33,
-          471
+          45,
+          579
+        ]
+      ]
+    }
+  },
+  "Custom augment": {
+    "Random Forest": {
+      "accuracy": 0.7143,
+      "precision": 0.7143,
+      "recall": 1.0,
+      "f1_score": 0.8333,
+      "cv_f1_mean": 0.8577,
+      "cv_f1_std": 0.0221,
+      "confusion_matrix": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          5
+        ]
+      ]
+    },
+    "Naive Bayes": {
+      "accuracy": 0.7143,
+      "precision": 0.7143,
+      "recall": 1.0,
+      "f1_score": 0.8333,
+      "cv_f1_mean": 0.5614,
+      "cv_f1_std": 0.397,
+      "confusion_matrix": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          5
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.8571,
+      "precision": 0.8333,
+      "recall": 1.0,
+      "f1_score": 0.9091,
+      "cv_f1_mean": 0.8052,
+      "cv_f1_std": 0.0398,
+      "confusion_matrix": [
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          5
         ]
       ]
     }

@@ -309,6 +309,8 @@ html {
 
 .hint { font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5; }
 .hint code { background: #f1f5f9; padding: 2px 7px; border-radius: 5px; font-size: 0.8rem; color: var(--accent); }
+.sender-hint { margin-top: 10px; margin-bottom: 12px; }
+.req-mark { color: var(--red); font-weight: 700; margin-left: 2px; }
 
 /* ===== ACCURACY PILL ===== */
 
@@ -473,6 +475,25 @@ textarea::placeholder, input::placeholder { color: var(--text-muted); }
 }
 
 .btn.primary:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 8px rgba(15,23,42,0.2); }
+
+.btn.secondary {
+    background: var(--white);
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    box-shadow: none;
+}
+.btn.secondary:hover:not(:disabled) {
+    background: var(--accent-soft);
+}
+.btn.btn-sm { padding: 8px 14px; font-size: 0.85rem; border-radius: var(--radius-sm); }
+
+.gmail-strip-wrap { max-width: 1140px; margin: 0 auto 16px; padding: 0 28px; }
+.gmail-strip { padding: 14px 18px; margin-bottom: 4px; }
+.gmail-strip-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.gmail-strip-label { font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+.gmail-status-text { flex: 1; min-width: 180px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; }
+.gmail-strip-warn { padding: 12px 18px; }
+.gmail-preview-box { margin-top: 10px; padding: 12px 14px; background: #f1f5f9; border-radius: var(--radius-sm); font-size: 0.8rem; white-space: pre-wrap; max-height: 240px; overflow: auto; border: 1px solid var(--border); color: var(--text-secondary); }
 
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 

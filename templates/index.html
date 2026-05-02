@@ -48,9 +48,10 @@
             <div class="card">
                 <div class="card-header-row"><h2>Analyze an Email (All Models)</h2></div>
                 <textarea id="email-input" rows="7" placeholder="Paste a suspicious email, website link, message, or sender address...&#10;&#10;Example: &quot;Dear Outlook User, immediate enrollment is required to keep your account active.&quot;"></textarea>
+                <p class="hint sender-hint">Include the <strong>sender address</strong> — models combine message text with sender/domain signals.</p>
                 <div class="optional-fields">
-                    <div class="field"><label for="sender-input">Sender (optional)</label><input type="text" id="sender-input" placeholder="e.g. promo@free-prize.xyz"></div>
-                    <div class="field"><label for="device-input">Device (optional)</label><input type="text" id="device-input" placeholder="e.g. iPhone, Unknown, Bot Sender"></div>
+                    <div class="field"><label for="sender-input">Sender <span class="req-mark" aria-hidden="true">*</span></label><input type="text" id="sender-input" name="sender" required autocomplete="email" inputmode="email" placeholder="e.g. noreply@company.com"></div>
+                    <div class="field"><label for="device-input">Device (optional)</label><input type="text" id="device-input" placeholder="e.g. Gmail, Outlook, iPhone"></div>
                 </div>
                 <button id="btn-check" class="btn primary">Check for Spam</button>
             </div>
@@ -83,6 +84,11 @@
                     <p id="image-file-name" class="file-name"></p>
                 </div>
                 <div id="image-preview-wrap" class="image-preview hidden"><img id="image-preview" alt="Preview"></div>
+                <p class="hint sender-hint">Same as Check Email: include <strong>sender</strong> for domain/source signals.</p>
+                <div class="optional-fields">
+                    <div class="field"><label for="image-sender-input">Sender <span class="req-mark" aria-hidden="true">*</span></label><input type="text" id="image-sender-input" autocomplete="email" placeholder="e.g. alerts@bank.com"></div>
+                    <div class="field"><label for="image-device-input">Device (optional)</label><input type="text" id="image-device-input" placeholder="e.g. Gmail"></div>
+                </div>
                 <button id="btn-scan-image" class="btn primary" disabled>Scan Image</button>
             </div>
             <div id="image-result" class="card result hidden">

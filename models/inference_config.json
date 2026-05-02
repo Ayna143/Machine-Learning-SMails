@@ -1,0 +1,4 @@
+{
+  "spam_proba_threshold": 0.45,
+  "custom_augment_repeat": 25
+}

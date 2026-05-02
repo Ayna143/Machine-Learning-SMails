@@ -53,9 +53,9 @@ def extract_text_features(text):
 
     features = {}
 
-    features['suspicious_keyword_count'] = sum(
-        1 for kw in SUSPICIOUS_KEYWORDS if kw in text_lower
-    )
+    # Down-weight raw keyword hits so the model leans on semantic + structure (prof feedback).
+    raw_kw = sum(1 for kw in SUSPICIOUS_KEYWORDS if kw in text_lower)
+    features['suspicious_keyword_count'] = float(min(raw_kw * 0.25, 6.0))
     features['url_count'] = len(re.findall(r'https?://\S+|www\.\S+', text))
     features['special_char_count'] = len(re.findall(r'[!$%&*#@^~]', text))
     features['uppercase_ratio'] = sum(1 for c in text if c.isupper()) / total_chars
@@ -89,10 +89,17 @@ def extract_sender_features(sender):
         'sender_domain_length': 0,
     }
 
-    if not isinstance(sender, str) or '@' not in sender:
+    if not isinstance(sender, str):
         return features
 
-    parts = sender.strip().lower().split('@')
+    s = sender.strip()
+    m = re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}', s)
+    if m:
+        s = m.group(0)
+    if '@' not in s:
+        return features
+
+    parts = s.lower().split('@')
     local_part = parts[0]
     domain = parts[1] if len(parts) > 1 else ''
 

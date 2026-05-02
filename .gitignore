@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 .env
+credentials/google_oauth_credentials.json
+credentials/*secret*.json

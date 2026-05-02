@@ -11,3 +11,6 @@ scipy
 requests
 easyocr
 gunicorn
+sentence-transformers>=2.2.0
+google-generativeai>=0.8.0
+python-dotenv>=1.0.1

@@ -75,6 +75,20 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+/** Matches server-side REQUIRE_SENDER checks (see app.validate_sender_field). */
+function validateSenderOrAlert(senderRaw) {
+    const s = (senderRaw || '').trim();
+    if (!s) {
+        alert('Sender email is required. Enter who sent this message (e.g. noreply@company.com).');
+        return false;
+    }
+    if (!/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/.test(s)) {
+        alert('Enter a sender that includes an email address, e.g. name@domain.com or Name <name@domain.com>.');
+        return false;
+    }
+    return true;
+}
+
 function formatFeatureLabel(key) {
     return String(key || '')
         .replace(/_/g, ' ')
@@ -102,14 +116,14 @@ async function loadMetricsSummary() {
 }
 loadMetricsSummary();
 
-function bestModelByHistAccuracy(resultsByModel) {
+function bestModelByHistF1(resultsByModel) {
     const names = Object.keys(resultsByModel || {});
     let best = names[0] || null;
-    let bestAccuracy = -1;
+    let bestF1 = -1;
     names.forEach(name => {
-        const acc = metricsSummary[name] && metricsSummary[name].accuracy;
-        const val = typeof acc === 'number' ? acc : -1;
-        if (val > bestAccuracy) { bestAccuracy = val; best = name; }
+        const f1 = metricsSummary[name] && metricsSummary[name].f1_score;
+        const val = typeof f1 === 'number' ? f1 : -1;
+        if (val > bestF1) { bestF1 = val; best = name; }
     });
     return best;
 }
@@ -301,6 +315,7 @@ renderHistory();
 $('btn-check')?.addEventListener('click', async () => {
     const text = $('email-input').value.trim();
     if (!text) { alert('Please enter an email to analyze.'); return; }
+    if (!validateSenderOrAlert($('sender-input').value)) return;
 
     showLoader();
     setLoading($('btn-check'), true, 'Checking...');
@@ -334,7 +349,7 @@ function renderSingleComparison(data) {
     const modelNames = Object.keys(results);
     if (!modelNames.length) return;
 
-    const historicalBest = data.recommended_model || bestModelByHistAccuracy(results);
+    const historicalBest = data.recommended_model || bestModelByHistF1(results);
     const cs = buildConsensusState(results, historicalBest);
     if (!cs) return;
 
@@ -363,7 +378,7 @@ function renderSingleComparison(data) {
         hide(disagree);
     }
 
-    $('single-suggestion').innerHTML = `Best overall model (highest historical accuracy): <strong>${escapeHtml(cs.historicalBest)}</strong><br>Most confident now (info only): <strong>${cs.mostConfident ? `${escapeHtml(cs.mostConfident.name)} (${(cs.mostConfident.confidence * 100).toFixed(1)}%)` : '—'}</strong>`;
+    $('single-suggestion').innerHTML = `Best overall model (highest historical F1): <strong>${escapeHtml(cs.historicalBest)}</strong><br>Most confident now (info only): <strong>${cs.mostConfident ? `${escapeHtml(cs.mostConfident.name)} (${(cs.mostConfident.confidence * 100).toFixed(1)}%)` : '—'}</strong>`;
 
     const tbody = document.querySelector('#single-model-table tbody');
     tbody.innerHTML = '';
@@ -395,7 +410,7 @@ function renderSingleComparison(data) {
     pushHistory({
         kind: 'email',
         text: textPreview($('email-input').value, 150),
-        subtitle: 'All models compared',
+        subtitle: $('sender-input').value.trim() || 'All models compared',
         prediction: cs.finalIsSpam ? 'spam' : 'not spam',
         is_spam: cs.finalIsSpam,
         confidence: cs.avgAgree != null ? cs.avgAgree : (cs.mostConfident ? cs.mostConfident.confidence : null),
@@ -436,8 +451,11 @@ function imageSelected(file) {
 
 btnScanImage?.addEventListener('click', async () => {
     if (!selectedImage) return;
+    if (!validateSenderOrAlert($('image-sender-input').value)) return;
     const fd = new FormData();
     fd.append('image', selectedImage);
+    fd.append('sender', $('image-sender-input').value.trim());
+    fd.append('device', ($('image-device-input').value || '').trim());
     showLoader();
     setLoading(btnScanImage, true, 'Scanning...');
     hide($('image-result'));
@@ -462,7 +480,7 @@ function renderImageComparison(data) {
     const names = Object.keys(results);
     if (!names.length) return;
 
-    const historicalBest = data.recommended_model || bestModelByHistAccuracy(results);
+    const historicalBest = data.recommended_model || bestModelByHistF1(results);
     const cs = buildConsensusState(results, historicalBest);
     if (!cs) return;
 
@@ -490,7 +508,7 @@ function renderImageComparison(data) {
         hide(disagree);
     }
 
-    $('image-suggestion').innerHTML = `Best overall model (highest historical accuracy): <strong>${escapeHtml(cs.historicalBest)}</strong><br>Most confident now (info only): <strong>${cs.mostConfident ? `${escapeHtml(cs.mostConfident.name)} (${(cs.mostConfident.confidence * 100).toFixed(1)}%)` : '—'}</strong>`;
+    $('image-suggestion').innerHTML = `Best overall model (highest historical F1): <strong>${escapeHtml(cs.historicalBest)}</strong><br>Most confident now (info only): <strong>${cs.mostConfident ? `${escapeHtml(cs.mostConfident.name)} (${(cs.mostConfident.confidence * 100).toFixed(1)}%)` : '—'}</strong>`;
     $('ocr-text').textContent = data.extracted_text || '(no text extracted)';
 
     const tbody = document.querySelector('#image-model-table tbody');
@@ -514,7 +532,7 @@ function renderImageComparison(data) {
     pushHistory({
         kind: 'image',
         text: textPreview(data.extracted_text || selectedImage?.name || 'image', 140),
-        subtitle: selectedImage?.name || '',
+        subtitle: [$('image-sender-input').value.trim(), selectedImage?.name].filter(Boolean).join(' · '),
         prediction: cs.finalIsSpam ? 'spam' : 'not spam',
         is_spam: cs.finalIsSpam,
         confidence: cs.avgAgree != null ? cs.avgAgree : (cs.mostConfident ? cs.mostConfident.confidence : null),
@@ -578,7 +596,7 @@ function renderBatchComparison(data) {
     const hamUnanimous = hamCounts.every(c => c === hamCounts[0]);
     const allAgreeCounts = spamUnanimous && hamUnanimous;
 
-    $('batch-suggestion').innerHTML = `Best overall model (highest historical accuracy): <strong>${escapeHtml(recommended)}</strong><br>${allAgreeCounts ? 'All models gave the same spam/ham totals.' : 'Models gave different totals. Check each row.'}`;
+    $('batch-suggestion').innerHTML = `Best overall model (highest historical F1): <strong>${escapeHtml(recommended)}</strong><br>${allAgreeCounts ? 'All models gave the same spam/ham totals.' : 'Models gave different totals. Check each row.'}`;
     $('stat-total').textContent = top.total;
     $('stat-spam').textContent = top.spam_count;
     $('stat-ham').textContent = top.ham_count;

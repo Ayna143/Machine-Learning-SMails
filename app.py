@@ -7,17 +7,50 @@ import os
 import io
 import csv
 import json
+import re
 import traceback
+from urllib.parse import quote
+
 from flask import Flask, render_template, request, jsonify
+from dotenv import load_dotenv
 import pandas as pd
 
 from src.predict import SpamDetector
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 detector = None
 MODELS_DIR = 'models'
+
+
+def require_sender_enabled():
+    """Set REQUIRE_SENDER=0 to skip sender checks (API / legacy testing)."""
+    return os.environ.get('REQUIRE_SENDER', '1').strip().lower() not in ('0', 'false', 'no')
+
+
+def validate_sender_field(sender):
+    """
+    When sender is required: must be non-empty and contain a plausible email address.
+    Accepts 'Display Name <user@domain.com>' via regex extraction.
+    Returns an error message string, or None if OK / validation disabled.
+    """
+    if not require_sender_enabled():
+        return None
+    raw = (sender or '').strip()
+    if not raw:
+        return (
+            'Sender address is required. Enter who sent this message '
+            '(e.g. alerts@yourbank.com) so source signals can be checked.'
+        )
+    if not re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}', raw):
+        return (
+            'Sender must include a valid-looking email address '
+            '(e.g. name@company.com).'
+        )
+    return None
 
 
 def get_detector():
@@ -58,12 +91,12 @@ def load_metrics_summary():
     return summary
 
 
-def get_best_model_by_accuracy(metrics_summary):
+def get_best_model_by_f1(metrics_summary):
     best_name, best_val = None, -1.0
     for name, m in metrics_summary.items():
-        acc = m.get('accuracy')
-        if isinstance(acc, (int, float)) and acc > best_val:
-            best_name, best_val = name, float(acc)
+        f1 = m.get('f1_score')
+        if isinstance(f1, (int, float)) and f1 > best_val:
+            best_name, best_val = name, float(f1)
     return best_name
 
 
@@ -127,7 +160,10 @@ def parse_uploaded_text_file(file):
 @app.route('/')
 def index():
     models = get_detector().get_available_models()
-    return render_template('index.html', models=models)
+    return render_template(
+        'index.html',
+        models=models,
+    )
 
 
 # ── Single Email Prediction ─────────────────────────────────────────────────
@@ -143,6 +179,10 @@ def predict():
 
         if not email_text:
             return jsonify({'error': 'Please enter email text to analyze.'}), 400
+
+        err = validate_sender_field(sender)
+        if err:
+            return jsonify({'error': err}), 400
 
         result = get_detector().predict(email_text, sender, device, model_name)
         return jsonify(result)
@@ -165,6 +205,10 @@ def predict_all():
         if not email_text:
             return jsonify({'error': 'Please enter email text to analyze.'}), 400
 
+        err = validate_sender_field(sender)
+        if err:
+            return jsonify({'error': err}), 400
+
         det = get_detector()
         models = det.get_available_models()
         results_by_model = {}
@@ -172,7 +216,7 @@ def predict_all():
             results_by_model[model_name] = det.predict(email_text, sender, device, model_name)
 
         metrics_summary = load_metrics_summary()
-        recommended_model = get_best_model_by_accuracy(metrics_summary) or (models[0] if models else None)
+        recommended_model = get_best_model_by_f1(metrics_summary) or (models[0] if models else None)
 
         return jsonify({
             'results_by_model': results_by_model,
@@ -245,7 +289,7 @@ def predict_batch_all():
         det = get_detector()
         models = det.get_available_models()
         metrics_summary = load_metrics_summary()
-        recommended_model = get_best_model_by_accuracy(metrics_summary) or (models[0] if models else None)
+        recommended_model = get_best_model_by_f1(metrics_summary) or (models[0] if models else None)
 
         per_model = {}
         for model_name in models:
@@ -358,8 +402,14 @@ def predict_image():
                 'model_used': model_name or 'best',
             })
 
+        sender = request.form.get('sender', '').strip()
+        device = request.form.get('device', '').strip()
+        err = validate_sender_field(sender)
+        if err:
+            return jsonify({'error': err}), 400
+
         try:
-            result = get_detector().predict(extracted_text, model_name=model_name)
+            result = get_detector().predict(extracted_text, sender, device, model_name)
         except Exception:
             traceback.print_exc()
             return jsonify({'error': 'Spam check failed. Make sure models are trained (run train_and_evaluate.py).'}), 500
@@ -422,14 +472,22 @@ def predict_image_all():
         if not extracted_text:
             return jsonify({'error': 'No text could be extracted from this image.'}), 400
 
+        sender = request.form.get('sender', '').strip()
+        device = request.form.get('device', '').strip()
+        err = validate_sender_field(sender)
+        if err:
+            return jsonify({'error': err}), 400
+
         det = get_detector()
         models = det.get_available_models()
         results_by_model = {}
         for model_name in models:
-            results_by_model[model_name] = det.predict(extracted_text, model_name=model_name)
+            results_by_model[model_name] = det.predict(
+                extracted_text, sender, device, model_name
+            )
 
         metrics_summary = load_metrics_summary()
-        recommended_model = get_best_model_by_accuracy(metrics_summary) or (models[0] if models else None)
+        recommended_model = get_best_model_by_f1(metrics_summary) or (models[0] if models else None)
 
         return jsonify({
             'extracted_text': extracted_text,
@@ -465,7 +523,7 @@ def model_metrics_summary():
     metrics_summary = load_metrics_summary()
     return jsonify({
         'metrics_summary': metrics_summary,
-        'recommended_model': get_best_model_by_accuracy(metrics_summary),
+        'recommended_model': get_best_model_by_f1(metrics_summary),
     })
 
 
