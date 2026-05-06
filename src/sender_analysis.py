@@ -1,7 +1,6 @@
 import re
 from typing import Dict, List
 
-
 FREE_MAIL_DOMAINS = {
     "gmail.com",
     "yahoo.com",
@@ -29,18 +28,12 @@ BRAND_KEYWORDS = {
     "google", "microsoft", "paypal", "apple", "amazon", "meta", "bank", "bdo", "bpi",
 }
 
-
 def _extract_sender_email(sender: str) -> str:
     s = (sender or "").strip().lower()
     m = re.search(r"[\w.+-]+@[\w.-]+\.[a-z]{2,}", s)
     return m.group(0) if m else s
 
-
 def score_sender_risk(sender: str, email_text: str) -> Dict[str, object]:
-    """
-    Returns sender score and qualitative risk.
-    Score scale: 0..100 (higher = riskier).
-    """
     reasons: List[str] = []
     score = 0.0
 

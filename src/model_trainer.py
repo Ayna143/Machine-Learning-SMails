@@ -12,29 +12,22 @@ from sklearn.metrics import (
 import joblib
 import os
 
-
 def _combine_features(X_tfidf, X_engineered):
-    """Combine sparse TF-IDF matrix with dense engineered features."""
+
     eng_sparse = csr_matrix(X_engineered)
     if issparse(X_tfidf):
         return hstack([X_tfidf, eng_sparse])
     return np.hstack([X_tfidf, X_engineered])
 
-
 def _combine_dense_text_and_engineered(X_dense_text, X_engineered):
-    """Stack dense semantic embeddings with engineered features."""
+
     if X_dense_text.ndim != 2:
         raise ValueError('X_dense_text must be 2D')
     eng = np.asarray(X_engineered, dtype=np.float32)
     xtxt = np.asarray(X_dense_text, dtype=np.float32)
     return np.hstack([xtxt, eng])
 
-
 def _combine_hybrid_features(X_tfidf, X_semantic, X_engineered):
-    """
-    Combine sparse TF-IDF with dense semantic embeddings and engineered features.
-    Semantic vectors are clipped at 0 so MultinomialNB remains valid in hybrid mode.
-    """
     sem = np.asarray(X_semantic, dtype=np.float32)
     sem = np.maximum(sem, 0.0)
     sem_sparse = csr_matrix(sem)
@@ -43,9 +36,8 @@ def _combine_hybrid_features(X_tfidf, X_semantic, X_engineered):
         return hstack([X_tfidf, sem_sparse, eng_sparse])
     return np.hstack([np.asarray(X_tfidf), sem, np.asarray(X_engineered)])
 
-
 def _get_models(*, use_gaussian_nb: bool = False):
-    """Return the three models. Use GaussianNB for dense (e.g. embedding) features."""
+
     nb = (
         GaussianNB(var_smoothing=1e-9)
         if use_gaussian_nb
@@ -70,7 +62,6 @@ def _get_models(*, use_gaussian_nb: bool = False):
         ),
     }
 
-
 def train_and_compare(
     X_tfidf,
     X_engineered,
@@ -80,12 +71,6 @@ def train_and_compare(
     dense_text_features: bool = False,
     X_semantic=None,
 ):
-    """
-    Train RF, NB, and XGBoost on combined features.
-    When dense_text_features is True, X_tfidf must be a dense 2D array (embeddings).
-    Uses 80-20 split + 3-fold cross-validation (when both classes exist).
-    Returns dict of results per model.
-    """
     y = np.asarray(y)
     n_classes = len(np.unique(y))
 
@@ -173,12 +158,10 @@ def train_and_compare(
 
     return results
 
-
 def select_best_model(results):
-    """Pick the model with the highest cross-validated F1 score."""
+
     best_name = max(results, key=lambda k: results[k]['cv_f1_mean'])
     return best_name, results[best_name]
-
 
 def save_all_models(
     results,
@@ -188,9 +171,6 @@ def save_all_models(
     embedding_model_id=None,
     use_tfidf_with_embeddings=False,
 ):
-    """
-    Save every trained model. Pass embedding_model_id for semantic pipeline (no TF-IDF).
-    """
     os.makedirs(model_dir, exist_ok=True)
 
     model_files = {
@@ -245,9 +225,8 @@ def save_all_models(
     print(f"  Best model: {best_name} -> best_model.pkl")
     return best_name
 
-
 def save_metrics(all_results, model_dir='models'):
-    """Save evaluation metrics for all datasets/models to JSON."""
+
     metrics = {}
 
     def _json_num(x, nd=4):
@@ -274,9 +253,8 @@ def save_metrics(all_results, model_dir='models'):
         json.dump(metrics, f, indent=2)
     print(f"  Metrics saved to {path}")
 
-
 def print_comparison_table(all_results):
-    """Pretty-print a comparison table across datasets and models."""
+
     print(f"\n{'='*80}")
     print("  FINAL MODEL COMPARISON")
     print(f"{'='*80}")

@@ -1,18 +1,8 @@
-"""
-Generate a comprehensive email spam dataset with columns:
-  - text        : email body content
-  - label       : 1 = spam, 0 = ham
-  - sender      : sender email address
-  - device      : device / email client used
-"""
-
 import random
 import csv
 import os
 
 random.seed(42)
-
-# ── Realistic sender domains ──────────────────────────────────────────────────
 
 LEGIT_DOMAINS = [
     'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'company.com',
@@ -50,8 +40,6 @@ SPAM_SENDERS = [
     'helpdesk', 'verify', 'customer-service', 'reward', 'lucky',
 ]
 
-# ── Devices / Email Clients ──────────────────────────────────────────────────
-
 DEVICES = [
     'iPhone (iOS Mail)', 'Android (Gmail App)', 'Windows PC (Outlook)',
     'MacOS (Apple Mail)', 'Windows PC (Thunderbird)', 'Web (Gmail)',
@@ -66,8 +54,6 @@ SPAM_DEVICES = [
     'Unknown', 'Mass Mail Server', 'Web (Proxy)', 'Unknown',
     'Bot Sender', 'Unknown', 'Automated System', 'Unknown',
 ]
-
-# ── Ham (legitimate) email templates ─────────────────────────────────────────
 
 HAM_TEMPLATES = [
     "Hi {name}, just a reminder about our meeting tomorrow at {time}. Please bring the {doc} report. Thanks!",
@@ -170,8 +156,6 @@ SPAM_TEMPLATES = [
     "BREAKING NEWS: Earn ${amount} per hour from your phone! Thousands already joined: {url}",
 ]
 
-# ── Fill-in values ───────────────────────────────────────────────────────────
-
 NAMES = ['John', 'Sarah', 'Mike', 'Emma', 'David', 'Lisa', 'Chris', 'Anna',
          'Tom', 'Rachel', 'Kevin', 'Diana', 'Mark', 'Sophie', 'James', 'Maria']
 TIMES = ['9:00 AM', '10:00 AM', '10:30 AM', '11:00 AM', '1:00 PM', '2:00 PM',
@@ -216,7 +200,6 @@ DEVICE_NAMES = ['iPhone', 'MacBook', 'Windows PC', 'Android phone', 'laptop']
 CARD_DIGITS = ['4521', '8832', '1199', '3347', '6678', '9901', '2244']
 QUARTERS = ['1', '2', '3', '4']
 
-
 def fill_ham(template):
     return template.format(
         name=random.choice(NAMES),
@@ -238,7 +221,6 @@ def fill_ham(template):
         quarter=random.choice(QUARTERS),
     )
 
-
 def fill_spam(template):
     return template.format(
         name=random.choice(NAMES),
@@ -257,7 +239,6 @@ def fill_spam(template):
         card_digits=random.choice(CARD_DIGITS),
     )
 
-
 def make_legit_sender():
     first = random.choice(LEGIT_FIRST_NAMES)
     last = random.choice(LEGIT_LAST_NAMES)
@@ -270,7 +251,6 @@ def make_legit_sender():
     ]
     return random.choice(patterns)
 
-
 def make_spam_sender():
     name = random.choice(SPAM_SENDERS)
     domain = random.choice(SPAM_DOMAINS)
@@ -281,9 +261,8 @@ def make_spam_sender():
     ]
     return random.choice(patterns)
 
-
 def generate_dataset(total=500, spam_ratio=0.35):
-    """Generate a balanced dataset with all required columns."""
+
     num_spam = int(total * spam_ratio)
     num_ham = total - num_spam
     rows = []
@@ -305,9 +284,8 @@ def generate_dataset(total=500, spam_ratio=0.35):
     random.shuffle(rows)
     return rows
 
-
 def main():
-    # Optional synthetic data (not used by train_and_evaluate.py by default)
+
     dest = os.path.join('datasets', 'generated_sample_emails.csv')
     rows = generate_dataset(total=500, spam_ratio=0.35)
 
@@ -323,7 +301,6 @@ def main():
     print(f"    Spam   : {spam_count}")
     print(f"    Ham    : {ham_count}")
     print(f"    Columns: text, label, sender, device\n")
-
 
 if __name__ == '__main__':
     main()

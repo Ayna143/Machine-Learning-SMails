@@ -19,7 +19,6 @@ SYSTEM_PROMPT = (
     "overall meaning and purpose. Return ONLY a JSON response."
 )
 
-
 def _extract_json_blob(text: str) -> str:
     t = (text or "").strip()
     if t.startswith("```"):
@@ -30,7 +29,6 @@ def _extract_json_blob(text: str) -> str:
     if start == -1 or end == -1 or end < start:
         raise ValueError("No JSON object found in Gemini response")
     return t[start : end + 1]
-
 
 def _normalize_result(raw: Dict[str, Any]) -> Dict[str, Any]:
     verdict = str(raw.get("verdict", "")).strip().lower()
@@ -58,13 +56,7 @@ def _normalize_result(raw: Dict[str, Any]) -> Dict[str, Any]:
         "error": None,
     }
 
-
 def analyze_with_gemini(email_text: str, sender: str) -> Dict[str, Any]:
-    """
-    Returns normalized dict:
-      { verdict: spam|ham, confidence: 0..100, reason: str, ok: bool, error: str|None }
-    Fail-open behavior is handled by caller using ok/error.
-    """
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
         return {

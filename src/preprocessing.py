@@ -10,13 +10,7 @@ nltk.download('stopwords', quiet=True)
 
 STOP_WORDS = set(stopwords.words('english'))
 
-
 def clean_text(text):
-    """
-    Full text preprocessing pipeline:
-    1. Lowercase  2. Remove punctuation/special chars
-    3. Tokenize   4. Remove stop words
-    """
     if not isinstance(text, str):
         return ""
     text = text.lower()
@@ -25,9 +19,8 @@ def clean_text(text):
     tokens = [t for t in tokens if t not in STOP_WORDS and len(t) > 1]
     return ' '.join(tokens)
 
-
 def build_tfidf_vectorizer(corpus, max_features=3000, ngram_range=(1, 2)):
-    """Build and fit a TF-IDF vectorizer with n-grams on the training corpus."""
+
     vectorizer = TfidfVectorizer(
         max_features=max_features,
         ngram_range=ngram_range,

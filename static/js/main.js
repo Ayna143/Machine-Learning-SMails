@@ -2,13 +2,12 @@ const $ = id => document.getElementById(id);
 const show = el => el && el.classList.remove('hidden');
 const hide = el => el && el.classList.add('hidden');
 
-/* Nav + tabs */
 const navLinks = document.querySelectorAll('.nav-link[data-section]');
 const sections = document.querySelectorAll('.page-section');
 navLinks.forEach(link => link.addEventListener('click', e => {
     const target = document.getElementById(link.dataset.section);
     if (target) {
-        // Keep native anchor navigation as fallback; smooth-scroll only when possible.
+
         target.scrollIntoView({ behavior: 'smooth' });
     }
 }));
@@ -25,7 +24,6 @@ document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', (
     if (target) target.classList.add('active');
 }));
 
-// Reveal scroll-animated sections (Blog/About/Company content).
 const animEls = document.querySelectorAll('.anim-on-scroll');
 if (animEls.length) {
     if ('IntersectionObserver' in window) {
@@ -43,7 +41,6 @@ if (animEls.length) {
     }
 }
 
-/* Helpers */
 const loader = $('loader');
 function showLoader() { show(loader); }
 function hideLoader() { hide(loader); }
@@ -75,7 +72,6 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-/** Matches server-side REQUIRE_SENDER checks (see app.validate_sender_field). */
 function validateSenderOrAlert(senderRaw) {
     const s = (senderRaw || '').trim();
     if (!s) {
@@ -98,14 +94,13 @@ function formatFeatureLabel(key) {
 function formatFeatureValue(val) {
     if (typeof val === 'number') {
         if (Number.isInteger(val)) return String(val);
-        // Keep values readable and avoid long-decimal UI overflow.
+
         return Number(val).toFixed(4).replace(/\.?0+$/, '');
     }
     if (typeof val === 'boolean') return val ? 'Yes' : 'No';
     return String(val ?? '-');
 }
 
-/* Metrics */
 let metricsSummary = {};
 async function loadMetricsSummary() {
     try {
@@ -237,7 +232,6 @@ function buildConsensusState(resultsByModel, historicalBest) {
     };
 }
 
-/* Charts */
 let singleChart = null;
 let imageChart = null;
 let batchChart = null;
@@ -268,7 +262,6 @@ function upsertBarChart(existingChart, canvasId, labels, values, label) {
     });
 }
 
-/* History */
 const HISTORY_KEY = 'spam_detector_history';
 function getHistory() {
     try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
@@ -311,7 +304,6 @@ $('btn-clear-history')?.addEventListener('click', () => {
 window.addEventListener('storage', e => { if (e.key === HISTORY_KEY) renderHistory(); });
 renderHistory();
 
-/* Single email (all models) */
 $('btn-check')?.addEventListener('click', async () => {
     const text = $('email-input').value.trim();
     if (!text) { alert('Please enter an email to analyze.'); return; }
@@ -418,7 +410,6 @@ function renderSingleComparison(data) {
     });
 }
 
-/* Image (all models) */
 const imageUploadArea = $('image-upload-area');
 const imageFileInput = $('image-file-input');
 const btnScanImage = $('btn-scan-image');
@@ -540,7 +531,6 @@ function renderImageComparison(data) {
     });
 }
 
-/* Batch (all models) */
 const uploadArea = $('upload-area');
 const fileInput = $('file-input');
 const btnUpload = $('btn-upload');
@@ -650,11 +640,9 @@ function textPreview(s, maxLen) {
     return t.length > maxLen ? t.slice(0, maxLen) + '...' : t;
 }
 
-/* About section (model comparison) */
 let compData = null;
 let compChart = null;
 
-/** Tab order for /comparison metrics (matches train_and_evaluate.py keys). */
 const DATASET_TAB_ORDER = ['SMS Spam', 'Enron Email', 'SpamAssassin', 'Third dataset', 'Combined'];
 
 function sortDatasetTabKeys(keys) {
@@ -788,5 +776,5 @@ if (aboutSection) {
     }, { threshold: 0.15 });
     ob.observe(aboutSection);
 }
-// Also load immediately so About is never blank.
+
 loadComparison();

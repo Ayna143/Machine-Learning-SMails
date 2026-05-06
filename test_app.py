@@ -1,4 +1,3 @@
-"""Quick test of all API endpoints."""
 import requests
 import json
 

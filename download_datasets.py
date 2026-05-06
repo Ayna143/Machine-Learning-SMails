@@ -1,15 +1,3 @@
-"""
-Download and prepare datasets:
-  1. SMS Spam Collection (UCI ML Repository)
-  2. Enron Spam Dataset (public mirror)
-  3. SpamAssassin Public Corpus (Apache — citable email ham/spam)
-
-Citation for (3):
-  Apache SpamAssassin Project. SpamAssassin Public Corpus.
-  https://spamassassin.apache.org/old/publiccorpus/
-  (see readme.html at that site for terms of use)
-"""
-
 import os
 import io
 import zipfile
@@ -19,9 +7,8 @@ import pandas as pd
 
 DATASETS_DIR = os.path.join(os.path.dirname(__file__), 'datasets')
 
-
 def download_sms_spam():
-    """Download the SMS Spam Collection from the UCI archive."""
+
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00228/smsspamcollection.zip"
     dest = os.path.join(DATASETS_DIR, 'sms_spam.csv')
 
@@ -45,12 +32,7 @@ def download_sms_spam():
     print(f"  [SMS Spam] Saved {len(df)} records to {dest}")
     return dest
 
-
 def download_enron_spam():
-    """
-    Download the preprocessed Enron-Spam dataset.
-    Tries multiple public sources.
-    """
     dest = os.path.join(DATASETS_DIR, 'enron_spam.csv')
 
     if os.path.exists(dest):
@@ -114,12 +96,7 @@ def download_enron_spam():
     print(f"  [Enron]    Saved {len(df)} records to {dest}")
     return dest
 
-
 def download_spamassassin_public():
-    """
-    Build datasets/spamassassin_public.csv from the Apache SpamAssassin Public Corpus
-    (raw message files). Uses the 20021010 easy_ham + spam tarballs.
-    """
     dest = os.path.join(DATASETS_DIR, 'spamassassin_public.csv')
 
     if os.path.exists(dest):
@@ -173,7 +150,6 @@ def download_spamassassin_public():
     print(f"  [SpamAssassin] Saved {len(df)} records (spam={(df['label'] == 1).sum()}, ham={(df['label'] == 0).sum()}) to {dest}")
     return dest
 
-
 def main():
     os.makedirs(DATASETS_DIR, exist_ok=True)
     print("\n  Downloading datasets...\n")
@@ -182,7 +158,6 @@ def main():
     spam_path = download_spamassassin_public()
     print("\n  All datasets ready.\n")
     return sms_path, enron_path, spam_path
-
 
 if __name__ == '__main__':
     main()

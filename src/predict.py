@@ -29,7 +29,6 @@ W_ML = 0.4
 W_GEMINI = 0.5
 W_SENDER = 0.1
 
-
 def _load_spam_threshold(model_dir):
     env_v = os.environ.get('SPAM_PROBA_THRESHOLD', '').strip()
     if env_v:
@@ -44,9 +43,7 @@ def _load_spam_threshold(model_dir):
             pass
     return 0.45
 
-
 class SpamDetector:
-    """Loads trained models + feature assets and classifies emails."""
 
     def __init__(self, model_dir='models'):
         self.model_dir = model_dir
@@ -170,7 +167,7 @@ class SpamDetector:
             note = ""
         else:
             g_score = 50.0
-            # Fail-open: renormalize ML+sender to 100 scale
+
             base = (W_ML * ml_score) + (W_SENDER * sender_score)
             final_score = base / (W_ML + W_SENDER)
             note = f"Gemini unavailable ({gemini_result.get('error', 'unknown error')}); used ML+sender fallback."
@@ -227,7 +224,7 @@ class SpamDetector:
             reasons.append("Sender risk: " + "; ".join(sender_result["reasons"][:2]))
 
         out = {
-            # Legacy fields (UI compatibility)
+
             'prediction': 'spam' if final_verdict == "Spam" else 'not spam',
             'is_spam': bool(final_verdict == "Spam"),
             'confidence': round(final_score / 100.0, 4),
@@ -236,7 +233,7 @@ class SpamDetector:
             'model_used': model_name,
             'semantic_model': self.use_embeddings,
             'spam_proba_threshold': self.spam_proba_threshold,
-            # New structured output
+
             'final_verdict': final_verdict,
             'ml_prediction': ml_prediction,
             'gemini_verdict': llm.get('verdict', 'ham').capitalize(),
@@ -254,9 +251,6 @@ class SpamDetector:
         return out
 
     def predict_batch(self, texts, model_name=None, llm_enabled=False):
-        """
-        Batch mode defaults to llm_enabled=False to avoid heavy API calls and cost.
-        """
         texts = [t if isinstance(t, str) else '' for t in texts]
         if not texts:
             return []

@@ -1,16 +1,3 @@
-"""
-Main training script — orchestrates the full ML pipeline:
-  1. Load datasets  (SMS Spam, Enron, SpamAssassin Public Corpus, optional custom augment)
-  2. Hybrid text features: TF-IDF + semantic embeddings + engineered features
-  3. Train & compare   Random Forest, Naive Bayes, XGBoost
-  4. Save ALL models + metrics
-
-Legacy TF-IDF mode (no sentence-transformers): set USE_TFIDF_ONLY=1
-
-Optional env:
-  CUSTOM_AUGMENT_REPEAT — duplicate custom CSV rows in combined training (default 25; 1 = off).
-  SPAM_PROBA_THRESHOLD — saved to models/inference_config.json; inference uses P(spam) >= threshold (default 0.45).
-"""
 import json
 import os
 import pandas as pd
@@ -30,9 +17,8 @@ MODELS_DIR = 'models'
 _DEFAULT_THIRD = os.path.join(DATASETS_DIR, 'spamassassin_public.csv')
 CUSTOM_DATASET_PATH = os.environ.get('CUSTOM_DATASET_PATH', _DEFAULT_THIRD)
 
-
 def _custom_augment_repeat():
-    """Extra copies of augment rows in combined training (1 = no oversampling)."""
+
     v = os.environ.get('CUSTOM_AUGMENT_REPEAT', '25').strip()
     try:
         n = int(v)
@@ -40,9 +26,8 @@ def _custom_augment_repeat():
         n = 25
     return max(1, n)
 
-
 def save_inference_config(model_dir):
-    """Persist spam probability threshold + augment weight used at train time."""
+
     thr = float(os.environ.get('SPAM_PROBA_THRESHOLD', '0.45'))
     thr = min(max(thr, 0.01), 0.99)
     rep = _custom_augment_repeat()
@@ -58,14 +43,7 @@ def save_inference_config(model_dir):
         )
     print(f"  Inference config saved to {path} (P(spam) >= {thr} -> spam)")
 
-
 def resolve_custom_augment_path():
-    """
-    Pick the user's labeled-email CSV. Supports:
-      - CUSTOM_AUGMENT_PATH env (absolute or relative)
-      - datasets/custom_spam_augment.csv
-      - datasets/custom_spam.csv  (common rename after re-download)
-    """
     env_path = os.environ.get('CUSTOM_AUGMENT_PATH', '').strip()
     if env_path:
         if os.path.isfile(env_path):
@@ -79,21 +57,18 @@ def resolve_custom_augment_path():
             return p
     return None
 
-
 def _embed_max_samples():
-    """None = use all rows (slow on huge corpora). Set SM_EMBED_MAX_SAMPLES=0 or full for no cap."""
+
     v = os.environ.get('SM_EMBED_MAX_SAMPLES', '150000').strip().lower()
     if v in ('', '0', 'none', 'full', 'all'):
         return None
     return int(v)
 
-
 def _use_tfidf_only():
     return os.environ.get('USE_TFIDF_ONLY', '').strip() in ('1', 'true', 'yes')
 
-
 def stratified_subsample(df, max_rows, random_state=42):
-    """Cap row count while preserving spam/ham ratio (for feasible embedding training)."""
+
     if max_rows is None or len(df) <= max_rows:
         return df.reset_index(drop=True)
     frac = max_rows / len(df)
@@ -105,12 +80,11 @@ def stratified_subsample(df, max_rows, random_state=42):
     )
     return sub.sample(frac=1, random_state=random_state).reset_index(drop=True)
 
-
 def load_dataset(path, name):
-    """Load a CSV dataset. Required column: text, label. Optional: sender, device."""
+
     print(f"\n  Loading {name} from {path}...")
     df = pd.read_csv(path, encoding='utf-8', on_bad_lines='skip')
-    # Normalize common column names (e.g., Text/Spam) to text/label.
+
     lower_map = {c.lower().strip(): c for c in df.columns}
     text_col = None
     label_col = None
@@ -134,7 +108,7 @@ def load_dataset(path, name):
         df = df.rename(columns={label_col: 'label'})
 
     df = df.dropna(subset=['text', 'label'])
-    # Normalize labels like 0/1, ham/spam.
+
     def _to_label(v):
         s = str(v).strip().lower()
         if s in ('1', 'spam', 'true', 'yes'):
@@ -161,9 +135,8 @@ def load_dataset(path, name):
         print(f"    With device   : {has_device}")
     return df
 
-
 def run_pipeline_tfidf(df, dataset_name, vectorizer=None):
-    """Legacy: TF-IDF + engineered features."""
+
     print(f"\n  Preprocessing {dataset_name} (TF-IDF)...")
     df['cleaned'] = df['text'].apply(clean_text)
 
@@ -186,9 +159,8 @@ def run_pipeline_tfidf(df, dataset_name, vectorizer=None):
     )
     return results, vectorizer
 
-
 def run_pipeline_embeddings(df, dataset_name, vectorizer=None, max_samples_cap=None):
-    """Hybrid: TF-IDF + semantic embeddings + engineered features."""
+
     cap_desc = 'no cap' if max_samples_cap is None else str(max_samples_cap)
     print(f"\n  Hybrid semantic pipeline for {dataset_name} (embed cap: {cap_desc})...")
     df_work = stratified_subsample(df, max_samples_cap)
@@ -226,19 +198,13 @@ def run_pipeline_embeddings(df, dataset_name, vectorizer=None, max_samples_cap=N
     )
     return results, vectorizer
 
-
 def run_pipeline(df, dataset_name, vectorizer=None, use_embeddings=True, max_samples_cap=None):
-    """
-    Full pipeline. Returns (results, vectorizer_or_None).
-    vectorizer is only set for TF-IDF mode.
-    """
     if use_embeddings:
         results, vectorizer = run_pipeline_embeddings(
             df, dataset_name, vectorizer=vectorizer, max_samples_cap=max_samples_cap
         )
         return results, vectorizer
     return run_pipeline_tfidf(df, dataset_name, vectorizer)
-
 
 def main():
     sms_path = os.path.join(DATASETS_DIR, 'sms_spam.csv')
@@ -272,7 +238,6 @@ def main():
     if not os.path.exists(custom_path):
         raise FileNotFoundError(f"Custom dataset still missing after download: {custom_path}")
 
-    # --- Load all datasets ---
     sms_df = load_dataset(sms_path, "SMS Spam Collection")
     enron_df = load_dataset(enron_path, "Enron Email Dataset")
     third_name = (
@@ -308,7 +273,6 @@ def main():
             "  Or set CUSTOM_AUGMENT_PATH to your CSV path."
         )
 
-    # --- Run pipeline on each dataset independently ---
     sms_results, _ = run_pipeline(
         sms_df, "SMS Spam Collection", use_embeddings=use_embed, max_samples_cap=max_cap
     )
@@ -325,7 +289,6 @@ def main():
             augment_df, "Custom augment", use_embeddings=use_embed, max_samples_cap=max_cap
         )
 
-    # --- Combined dataset for the final production model ---
     print("\n  Combining all datasets for final training...")
     parts = [sms_df, enron_df, full_df]
     if augment_df is not None:
@@ -357,7 +320,6 @@ def main():
         max_samples_cap=max_cap,
     )
 
-    # --- Print comparison table ---
     all_results = {
         'SMS Spam': sms_results,
         'Enron Email': enron_results,
@@ -369,7 +331,6 @@ def main():
 
     print_comparison_table(all_results)
 
-    # --- Save ALL models + metrics ---
     emb_id = DEFAULT_EMBEDDING_MODEL_ID if use_embed else None
     best_name = save_all_models(
         combined_results,
@@ -393,7 +354,6 @@ def main():
         print("\n  Models use TF-IDF + engineered features (legacy mode).")
 
     print("\n  Training complete. Run the web app with:  python app.py\n")
-
 
 if __name__ == '__main__':
     main()

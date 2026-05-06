@@ -1,8 +1,3 @@
-"""
-Flask web application for Email Spam Detection.
-Features: single check, batch import, image OCR; model comparison in About.
-"""
-
 import os
 import io
 import csv
@@ -25,18 +20,11 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 detector = None
 MODELS_DIR = 'models'
 
-
 def require_sender_enabled():
-    """Set REQUIRE_SENDER=0 to skip sender checks (API / legacy testing)."""
+
     return os.environ.get('REQUIRE_SENDER', '1').strip().lower() not in ('0', 'false', 'no')
 
-
 def validate_sender_field(sender):
-    """
-    When sender is required: must be non-empty and contain a plausible email address.
-    Accepts 'Display Name <user@domain.com>' via regex extraction.
-    Returns an error message string, or None if OK / validation disabled.
-    """
     if not require_sender_enabled():
         return None
     raw = (sender or '').strip()
@@ -52,16 +40,14 @@ def validate_sender_field(sender):
         )
     return None
 
-
 def get_detector():
     global detector
     if detector is None:
         detector = SpamDetector(model_dir=MODELS_DIR)
     return detector
 
-
 def load_metrics_summary():
-    """Aggregate model metrics across available datasets for model-vs-model comparison."""
+
     metrics_path = os.path.join(MODELS_DIR, 'metrics.json')
     if not os.path.exists(metrics_path):
         return {}
@@ -90,7 +76,6 @@ def load_metrics_summary():
             summary[model_name][key] = round(sum(arr) / len(arr), 4) if arr else None
     return summary
 
-
 def get_best_model_by_f1(metrics_summary):
     best_name, best_val = None, -1.0
     for name, m in metrics_summary.items():
@@ -98,7 +83,6 @@ def get_best_model_by_f1(metrics_summary):
         if isinstance(f1, (int, float)) and f1 > best_val:
             best_name, best_val = name, float(f1)
     return best_name
-
 
 def parse_uploaded_text_file(file):
     if file.filename == '':
@@ -154,9 +138,6 @@ def parse_uploaded_text_file(file):
 
     return texts, true_labels, None
 
-
-# ── Pages ────────────────────────────────────────────────────────────────────
-
 @app.route('/')
 def index():
     models = get_detector().get_available_models()
@@ -164,9 +145,6 @@ def index():
         'index.html',
         models=models,
     )
-
-
-# ── Single Email Prediction ─────────────────────────────────────────────────
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -192,7 +170,6 @@ def predict():
     except Exception:
         traceback.print_exc()
         return jsonify({'error': 'An unexpected error occurred.'}), 500
-
 
 @app.route('/predict_all', methods=['POST'])
 def predict_all():
@@ -226,9 +203,6 @@ def predict_all():
     except Exception:
         traceback.print_exc()
         return jsonify({'error': 'An unexpected error occurred.'}), 500
-
-
-# ── Batch / CSV Import ──────────────────────────────────────────────────────
 
 @app.route('/predict_batch', methods=['POST'])
 def predict_batch():
@@ -273,7 +247,6 @@ def predict_batch():
     except Exception:
         traceback.print_exc()
         return jsonify({'error': 'Failed to process the uploaded file.'}), 500
-
 
 @app.route('/predict_batch_all', methods=['POST'])
 def predict_batch_all():
@@ -329,9 +302,6 @@ def predict_batch_all():
         traceback.print_exc()
         return jsonify({'error': 'Failed to process the uploaded file.'}), 500
 
-
-# ── Image OCR Prediction ────────────────────────────────────────────────────
-
 @app.route('/predict_image', methods=['POST'])
 def predict_image():
     try:
@@ -354,7 +324,6 @@ def predict_image():
         except ImportError:
             return jsonify({'error': 'Pillow or numpy is not installed. Run: pip install Pillow numpy'}), 500
 
-        # Read file into memory so stream is not exhausted
         try:
             raw = file.read()
             if not raw:
@@ -420,7 +389,6 @@ def predict_image():
     except Exception:
         traceback.print_exc()
         return jsonify({'error': 'Failed to process the image. Check the terminal/console where the server is running for the error details.'}), 500
-
 
 @app.route('/predict_image_all', methods=['POST'])
 def predict_image_all():
@@ -499,9 +467,6 @@ def predict_image_all():
         traceback.print_exc()
         return jsonify({'error': 'Failed to process the image. Check server console for details.'}), 500
 
-
-# ── Model Comparison Data ───────────────────────────────────────────────────
-
 @app.route('/comparison')
 def comparison():
     metrics_path = os.path.join(MODELS_DIR, 'metrics.json')
@@ -512,11 +477,9 @@ def comparison():
         metrics = json.load(f)
     return jsonify(metrics)
 
-
 @app.route('/models_list')
 def models_list():
     return jsonify({'models': get_detector().get_available_models()})
-
 
 @app.route('/model_metrics_summary')
 def model_metrics_summary():
@@ -525,9 +488,6 @@ def model_metrics_summary():
         'metrics_summary': metrics_summary,
         'recommended_model': get_best_model_by_f1(metrics_summary),
     })
-
-
-# ── Run ──────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
     print("\n  Starting Email Spam Detection Web App...")

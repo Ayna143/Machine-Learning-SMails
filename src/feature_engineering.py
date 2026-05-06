@@ -12,7 +12,6 @@ SUSPICIOUS_KEYWORDS = [
 
 SUSPICIOUS_TLDS = ['.xyz', '.top', '.click', '.info', '.bid', '.tk', '.ml', '.ga', '.cf']
 
-# Core text features
 TEXT_FEATURE_NAMES = [
     'suspicious_keyword_count',
     'url_count',
@@ -26,14 +25,12 @@ TEXT_FEATURE_NAMES = [
     'digit_ratio',
 ]
 
-# Sender-derived features
 SENDER_FEATURE_NAMES = [
     'sender_domain_suspicious',
     'sender_has_numbers',
     'sender_domain_length',
 ]
 
-# Device-derived features
 DEVICE_FEATURE_NAMES = [
     'device_is_unknown',
     'device_is_mobile',
@@ -42,9 +39,8 @@ DEVICE_FEATURE_NAMES = [
 
 FEATURE_NAMES = TEXT_FEATURE_NAMES + SENDER_FEATURE_NAMES + DEVICE_FEATURE_NAMES
 
-
 def extract_text_features(text):
-    """Extract content-based, structural, and domain-based features from email text."""
+
     if not isinstance(text, str):
         text = ""
 
@@ -53,7 +49,6 @@ def extract_text_features(text):
 
     features = {}
 
-    # Down-weight raw keyword hits so the model leans on semantic + structure (prof feedback).
     raw_kw = sum(1 for kw in SUSPICIOUS_KEYWORDS if kw in text_lower)
     features['suspicious_keyword_count'] = float(min(raw_kw * 0.25, 6.0))
     features['url_count'] = len(re.findall(r'https?://\S+|www\.\S+', text))
@@ -80,9 +75,8 @@ def extract_text_features(text):
 
     return features
 
-
 def extract_sender_features(sender):
-    """Extract features from the sender email address."""
+
     features = {
         'sender_domain_suspicious': 0,
         'sender_has_numbers': 0,
@@ -117,9 +111,8 @@ def extract_sender_features(sender):
 
     return features
 
-
 def extract_device_features(device):
-    """Extract features from the device / email client string."""
+
     features = {
         'device_is_unknown': 0,
         'device_is_mobile': 0,
@@ -145,18 +138,16 @@ def extract_device_features(device):
 
     return features
 
-
 def extract_features(text, sender='', device=''):
-    """Extract all features: text + sender + device."""
+
     feats = {}
     feats.update(extract_text_features(text))
     feats.update(extract_sender_features(sender))
     feats.update(extract_device_features(device))
     return feats
 
-
 def extract_features_batch(texts, senders=None, devices=None):
-    """Extract features for a list of texts. Returns a 2D numpy array."""
+
     n = len(texts)
     if senders is None:
         senders = [''] * n
